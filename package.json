@@ -1,0 +1,15 @@
+{
+  "name": "monte-olimpo-web",
+  "private": true,
+  "type": "module",
+  "description": "Sitio web de Monte Olimpo y Santa Clara Poblado Campestre, con el asistente Olimpo",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0"
+  }
+}

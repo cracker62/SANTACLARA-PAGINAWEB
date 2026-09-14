@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/olimpo.js": {
+      "includeFiles": "{data,lib}/**",
+      "maxDuration": 60
+    }
+  }
+}
