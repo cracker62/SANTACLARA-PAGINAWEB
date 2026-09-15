@@ -1,5 +1,5 @@
 /* Función serverless (Vercel): POST /api/olimpo  { messages: [{ role, content }] } → { respuesta } */
-import { manejar, ErrorOlimpo } from "../lib/olimpo.js";
+import { manejar, ErrorOlimpo } from "./_lib/olimpo.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return res.status(405).json({ error: "Método no permitido" }); }

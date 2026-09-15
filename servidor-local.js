@@ -7,7 +7,8 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import { manejar, ErrorOlimpo } from "./lib/olimpo.js";
+import { manejar, ErrorOlimpo } from "./api/_lib/olimpo.js";
+import { inventarioVivo } from "./api/_lib/inventario.js";
 
 if (fs.existsSync(".env")) {
   for (const linea of fs.readFileSync(".env", "utf8").split(/\r?\n/)) {
@@ -19,10 +20,15 @@ if (fs.existsSync(".env")) {
 const PUERTO = +process.env.PORT || 3000;
 const RAIZ = process.cwd();
 const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".svg": "image/svg+xml" };
-const PRIVADO = /^\/(lib|api|tools|node_modules|\.env|servidor-local\.js|package)/;
+const PRIVADO = /^\/(api|tools|node_modules|\.env|servidor-local\.js|package)/;
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
+  if (url.pathname === "/api/inventario") {
+    const { datos, fuente } = await inventarioVivo();
+    res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8" });
+    return res.end(fuente === "hoja" ? "window.SANTA_CLARA=" + JSON.stringify(datos) + ";" : "/* inventario del archivo */");
+  }
   if (url.pathname === "/api/olimpo") {
     if (req.method !== "POST") { res.writeHead(405); return res.end(); }
     let cuerpo = "";

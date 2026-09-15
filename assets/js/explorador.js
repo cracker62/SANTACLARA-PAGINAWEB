@@ -13,7 +13,7 @@
   var vendibles = lots.filter(function (l) { return l.estado !== "tecnico"; });
   var disponibles = lots.filter(function (l) { return l.estado === "disponible"; });
 
-  var ESTADO = { disponible: "Disponible", vendido: "Vendido", proximamente: "Próximamente", tecnico: "Zona técnica" };
+  var ESTADO = { disponible: "Disponible", vendido: "Vendido", reservado: "Reservado", proximamente: "Próximamente", tecnico: "Zona técnica" };
   var nombreLote = function (l) { return "Mz. " + l.mz + " · Lote " + l.n; };
   var cuotaDesde = function (l) { var r = MO.reglaPlazo(l.area); return MO.proyeccion(l.precio, F.default_down_payment, r.max_months).cuota; };
 
@@ -488,7 +488,7 @@
     var close = '<button type="button" class="ficha__close" data-close aria-label="Cerrar ficha"><svg viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.6"><path d="m3 3 10 10M13 3 3 13"/></svg></button>';
     var html;
     if (l.estado === "disponible") html = fichaDisponible(l, close);
-    else if (l.estado === "vendido") html = fichaVendido(l, close);
+    else if (l.estado === "vendido" || l.estado === "reservado") html = fichaVendido(l, close);
     else html = fichaProximo(l, close);
     box.innerHTML = html;
     $("[data-panel-scroll]").scrollTop = 0;
@@ -535,15 +535,16 @@
   }
 
   function fichaVendido(l, close) {
+    var res = l.estado === "reservado";
     var sims = disponibles.slice().sort(function (a, b) {
       var da = Math.abs(a.area - (l.area || 500)) + Math.hypot(a.cx - l.cx, a.cy - l.cy) * .4;
       var db = Math.abs(b.area - (l.area || 500)) + Math.hypot(b.cx - l.cx, b.cy - l.cy) * .4;
       return da - db;
     }).slice(0, 3);
     return '<div class="ficha">' +
-      '<div class="ficha__top"><div><span class="kicker v">Lote vendido</span><h3>' + nombreLote(l) + "</h3></div>" + close + "</div>" +
-      '<div class="pills"><span class="pill no">Vendido</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + "</div>" +
-      '<p style="color:var(--sc-tinta-2)">Este lote ya tiene propietario. Estos lotes disponibles se le parecen en área y ubicación:</p>' +
+      '<div class="ficha__top"><div><span class="kicker v">' + (res ? "Lote reservado" : "Lote vendido") + "</span><h3>" + nombreLote(l) + "</h3></div>" + close + "</div>" +
+      '<div class="pills"><span class="pill ' + (res ? "res" : "no") + '">' + (res ? "Reservado" : "Vendido") + "</span>" + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + "</div>" +
+      '<p style="color:var(--sc-tinta-2)">' + (res ? "Otro cliente separó este lote. Si se libera, tu asesor te avisa. Mientras tanto, estos lotes disponibles se le parecen:" : "Este lote ya tiene propietario. Estos lotes disponibles se le parecen en área y ubicación:") + "</p>" +
       '<div class="similar"><h4>Lotes similares disponibles</h4><ul class="lotlist">' +
       sims.map(function (s) { return '<li><button type="button" data-id="' + s.id + '"><span class="id">' + s.id + '</span><span class="a">' + fmtN.format(s.area) + " m² · " + s.ubic + '</span><span class="p">' + MO.pesos(s.precio) + '</span><span class="c">desde ' + MO.pesos(cuotaDesde(s)) + "/mes</span></button></li>"; }).join("") +
       "</ul></div>" +
@@ -575,6 +576,7 @@
       links();
     }
     function resumen() {
+      if (!proy) return "Área: " + fmtN.format(l.area || 0) + " m²";
       return "Área: " + fmtN.format(l.area) + " m²\nValor: " + MO.pesos(l.precio) +
         "\nCuota inicial simulada: " + sim.pct + "% (" + MO.pesos(proy.inicial) + ")" +
         "\nPlazo: " + sim.meses + " meses\nCuota mensual aproximada: " + MO.pesos(proy.cuota);
@@ -585,7 +587,7 @@
         proyeccion: "Hola, estoy interesado en el lote " + l.id + " de Santa Clara.\n\n" + resumen() + "\n\nQuiero confirmar disponibilidad y condiciones de financiación.",
         asesor: "Hola, tengo preguntas sobre el lote " + l.id + " de Santa Clara (" + fmtN.format(l.area || 0) + " m²).",
         visita: "Hola, quiero agendar una visita a Santa Clara para conocer el lote " + l.id + ".",
-        "asesor-general": "Hola, vi que el lote " + l.id + " de Santa Clara está vendido. ¿Me ayudan a encontrar uno similar?",
+        "asesor-general": "Hola, vi que el lote " + l.id + " de Santa Clara está " + (l.estado === "reservado" ? "reservado" : "vendido") + ". ¿Me ayudan a encontrar uno similar?",
         proximo: "Hola, quiero información sobre el lote " + l.id + " de Santa Clara, que aparece como próximamente."
       };
       $$("[data-act]", box).forEach(function (a) {

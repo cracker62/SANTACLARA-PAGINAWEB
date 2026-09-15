@@ -30,6 +30,10 @@ window.MO_CONFIG = {
     aviso: "Simulación informativa. Condiciones sujetas a disponibilidad y aprobación comercial vigente."
   },
 
+  // Inventario en vivo: hoja de Google de la empresa (pestaña del listado de valores). La página la lee cada minuto.
+  // Debe estar compartida como "cualquier persona con el enlace puede ver". Borra hoja_id para usar solo data/santa-clara.js.
+  inventario_vivo: { hoja_id: "1N_E_11j8MUycjeh2ytEqvEoFN-CpUVpvCOayvAfmfS8", gid: "572349608" },
+
   // Asistente Olimpo con IA: ruta de la función del servidor (api/olimpo.js). Si no responde, Olimpo usa su motor local.
   olimpo_api: "/api/olimpo",
 

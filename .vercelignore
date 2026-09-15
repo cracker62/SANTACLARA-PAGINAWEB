@@ -1,0 +1,8 @@
+# Archivos que NO se publican en Vercel (solo sirven en el computador)
+tools/
+servidor-local.js
+.env
+.env.*
+.claude/
+node_modules/
+data/plano-raw.json

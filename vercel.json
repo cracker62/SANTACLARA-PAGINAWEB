@@ -1,8 +1,12 @@
 {
   "framework": null,
   "functions": {
+    "api/inventario.js": {
+      "includeFiles": "data/**",
+      "maxDuration": 15
+    },
     "api/olimpo.js": {
-      "includeFiles": "{data,lib}/**",
+      "includeFiles": "data/**",
       "maxDuration": 60
     }
   }

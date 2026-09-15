@@ -76,9 +76,9 @@
     // lote específico
     if (e.lote) {
       var l = e.lote;
-      if (l.estado === "vendido") {
+      if (l.estado === "vendido" || l.estado === "reservado") {
         var sim = disp.slice().sort(function (a, b) { return Math.abs(a.area - l.area) - Math.abs(b.area - l.area) || a.precio - b.precio; }).slice(0, 3);
-        return W("El lote <b>" + l.id + "</b> ya está <b>vendido</b>. Estos disponibles se le parecen:<ul>" + sim.map(filaLote).join("") + "</ul>", ["Hablar con un asesor"]);
+        return W("El lote <b>" + l.id + "</b> ya está <b>" + (l.estado === "reservado" ? "reservado por otro cliente" : "vendido") + "</b>. Estos disponibles se le parecen:<ul>" + sim.map(filaLote).join("") + "</ul>", ["Hablar con un asesor"]);
       }
       if (l.estado !== "disponible") return W("El lote <b>" + l.id + "</b> aparece como <b>" + (l.estado === "tecnico" ? "zona técnica" : "próximamente") + "</b> y no tiene precio publicado. Tu asesor te puede dar novedades.", ["Hablar con un asesor"]);
       var r = regla(l.area), meses = e.meses ? Math.min(Math.max(e.meses, r.min_months), r.max_months) : r.max_months, pct = e.pct && F.down_payment_options.indexOf(e.pct) !== -1 ? e.pct : F.default_down_payment;

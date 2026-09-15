@@ -1,5 +1,5 @@
 /*
- * OLIMPO con IA · lógica del servidor (compartida por api/olimpo.js y servidor-local.js)
+ * OLIMPO con IA · lógica del servidor (compartida por api/olimpo.js y servidor-local.js; carpeta con "_" = no es una ruta pública)
  * Construye el conocimiento a partir de los mismos archivos de datos del sitio (inventario, condiciones y
  * preguntas frecuentes) y consulta a Claude. La clave ANTHROPIC_API_KEY vive solo en el servidor.
  */
@@ -7,18 +7,20 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import Anthropic from "@anthropic-ai/sdk";
+import { inventarioVivo } from "./inventario.js";
 
 const RAIZ = process.cwd();
 const MODELO = process.env.OLIMPO_MODEL || "claude-opus-5";
 const MAX_MENSAJES = 20;
 const MAX_CARACTERES = 1200;
 
-function cargarDatos() {
+async function cargarDatos() {
   const ctx = { window: {} };
-  for (const f of ["data/config.js", "data/faq.js", "data/santa-clara.js"]) {
+  for (const f of ["data/config.js", "data/faq.js"]) {
     vm.runInNewContext(fs.readFileSync(path.join(RAIZ, f), "utf8"), ctx, { filename: f });
   }
-  return { cfg: ctx.window.MO_CONFIG, faq: ctx.window.MO_FAQ || [], sc: ctx.window.SANTA_CLARA };
+  const { datos } = await inventarioVivo(); // inventario de la hoja de la empresa (o del archivo si no responde)
+  return { cfg: ctx.window.MO_CONFIG, faq: ctx.window.MO_FAQ || [], sc: datos };
 }
 
 const pesos = (v) => "$" + Math.round(v).toLocaleString("es-CO");
@@ -27,11 +29,13 @@ function reglaPlazo(cfg, area) {
   return cfg.financiacion.financing_rules.find((r) => r.hasta_m2 === null || area <= r.hasta_m2);
 }
 
-/* Texto estable del system prompt: se construye una vez por instancia (así se aprovecha el caché de prompts). */
-let SYSTEM = null;
-function systemPrompt() {
-  if (SYSTEM) return SYSTEM;
-  const { cfg, faq, sc } = cargarDatos();
+/* Texto del system prompt: se reconstruye cada 5 minutos con el inventario vigente
+   (entre reconstrucciones es idéntico, así se aprovecha el caché de prompts). */
+let SYSTEM = null, SYSTEM_T = 0;
+async function systemPrompt() {
+  if (SYSTEM && Date.now() - SYSTEM_T < 5 * 60 * 1000) return SYSTEM;
+  const { cfg, faq, sc } = await cargarDatos();
+  const reservados = sc.lots.filter((l) => l.estado === "reservado").map((l) => l.id);
   const F = cfg.financiacion;
   const disp = sc.lots.filter((l) => l.estado === "disponible");
   const vendidos = sc.lots.filter((l) => l.estado === "vendido").map((l) => l.id);
@@ -100,11 +104,15 @@ ${inventario}
 # Lotes vendidos (no ofrecer; si preguntan por uno, sugiere parecidos disponibles)
 ${vendidos.join(", ")}
 
+# Lotes reservados (separados por otro cliente; no ofrecer, pero pueden liberarse: el asesor confirma)
+${reservados.join(", ") || "ninguno"}
+
 # Lotes próximamente (sin precio publicado; el asesor da novedades)
 ${proximos.join(", ")}
 
 # Preguntas frecuentes
 ${preguntas}`;
+  SYSTEM_T = Date.now();
   return SYSTEM;
 }
 
@@ -139,7 +147,7 @@ export async function responderOlimpo(mensajes) {
     fallbacks: "default",
     output_config: { effort: "low" },
     system: [
-      { type: "text", text: systemPrompt(), cache_control: { type: "ephemeral" } },
+      { type: "text", text: await systemPrompt(), cache_control: { type: "ephemeral" } },
       { type: "text", text: "Chat en vivo: empieza tu respuesta visible de inmediato." },
     ],
     messages,
