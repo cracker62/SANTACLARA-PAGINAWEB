@@ -19,7 +19,7 @@ if (fs.existsSync(".env")) {
 const PUERTO = +process.env.PORT || 3000;
 const RAIZ = process.cwd();
 const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".svg": "image/svg+xml" };
-const PRIVADO = /^\/(lib|api|tools|node_modules|\.env|server\.js|package)/;
+const PRIVADO = /^\/(lib|api|tools|node_modules|\.env|servidor-local\.js|package)/;
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
