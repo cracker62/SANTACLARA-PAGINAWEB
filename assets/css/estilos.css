@@ -438,6 +438,25 @@ body.olimpo-lock{overflow:hidden}
 .olimpo-fab__txt b{font-size:14.5px;color:var(--oro-luz)}
 .olimpo-fab__txt small{font-size:12px;color:var(--marfil-2)}
 .olimpo-fab.is-hidden{transform:translateY(20px);opacity:0;pointer-events:none}
+/* El botón de Olimpo brilla siempre: resplandor dorado y un aro que late para que nadie lo pase por alto */
+.olimpo-fab{animation:olimpo-brillo 3.2s ease-in-out infinite}
+.olimpo-fab::after{content:"";position:absolute;inset:-3px;border-radius:999px;border:1.5px solid rgba(232,199,122,.7);opacity:0;animation:olimpo-halo 3.2s ease-out infinite;pointer-events:none}
+.olimpo-fab:hover{animation-play-state:paused}
+.olimpo-fab.is-hidden{animation:none}
+.olimpo-fab.is-hidden::after{animation:none;opacity:0}
+@keyframes olimpo-brillo{
+  0%,100%{box-shadow:0 14px 34px -10px rgba(0,0,0,.6),0 0 0 0 rgba(232,199,122,.34)}
+  50%{box-shadow:0 14px 34px -10px rgba(0,0,0,.6),0 0 26px 6px rgba(232,199,122,.44)}
+}
+@keyframes olimpo-halo{
+  0%{transform:scale(1);opacity:.85}
+  70%{transform:scale(1.22);opacity:0}
+  100%{transform:scale(1.22);opacity:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .olimpo-fab{animation:none;box-shadow:0 14px 34px -10px rgba(0,0,0,.6),0 0 22px 4px rgba(232,199,122,.38)}
+  .olimpo-fab::after{animation:none;opacity:.5}
+}
 @media (max-width:860px){.olimpo-fab{bottom:84px;right:12px;padding:4px}.olimpo-fab__txt{display:none}}
 
 /* ==========================================================================

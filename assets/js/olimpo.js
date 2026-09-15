@@ -62,6 +62,14 @@
 
   /* ---------- respuestas ---------- */
   function linkLote(l, base) { return '<a href="#" data-ir-lote="' + l.id + '">' + l.id + "</a>"; }
+  /* Botón de WhatsApp con el resumen de lo conversado: es el cierre de cada respuesta comercial */
+  function ctaWa(texto, msg) { return '<a class="olimpo__cta olimpo__cta--wa" href="#" data-wa-olimpo data-wa-msg="' + String(msg).replace(/"/g, "&quot;") + '">' + texto + " →</a>"; }
+  function resumenLote(l, pct, meses) {
+    var r = regla(l.area);
+    meses = meses || r.max_months; pct = pct || F.default_down_payment;
+    return "Hola, me interesa el lote " + l.id + " de Santa Clara (Mz. " + l.mz + " · Lote " + l.n + ").\n\nÁrea: " + nf.format(l.area) + " m²\nValor: " + pesos(l.precio) +
+      "\nCuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "\nCuota mensual a " + meses + " meses: " + pesos(cuota(l.precio, pct, meses));
+  }
   function filaLote(l) {
     var r = regla(l.area);
     return "<li>" + linkLote(l) + " · " + nf.format(l.area) + " m² · " + (l.ubic || "") + " · <b>" + millones(l.precio) + "</b> · desde " + pesos(cuota(l.precio, F.default_down_payment, r.max_months)) + "/mes</li>";
@@ -84,7 +92,9 @@
       var r = regla(l.area), meses = e.meses ? Math.min(Math.max(e.meses, r.min_months), r.max_months) : r.max_months, pct = e.pct && F.down_payment_options.indexOf(e.pct) !== -1 ? e.pct : F.default_down_payment;
       var ajuste = e.meses && meses !== e.meses ? " (para este lote el plazo de referencia es de " + r.min_months + " a " + r.max_months + " meses)" : "";
       return W("¡Buena elección! <b>Mz. " + l.mz + " · Lote " + l.n + "</b><ul><li>Área: " + nf.format(l.area) + " m²</li><li>Valor: <b>" + pesos(l.precio) + "</b></li><li>Ubicación: " + l.ubic + " · Etapa " + l.etapa + "</li><li>Cuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "</li><li>Cuota mensual a " + meses + " meses: <b>" + pesos(cuota(l.precio, pct, meses)) + "</b>" + ajuste + "</li></ul>" +
-        '<a class="olimpo__cta" href="#" data-ir-lote="' + l.id + '">Ver este lote en el plano →</a>', ["Quiero este lote", "Lotes parecidos"]);
+        "Hoy está disponible, pero el inventario cambia todos los días. <b>¿Prefieres venir a verlo o que te lo aparten a tu nombre?</b>" +
+        '<a class="olimpo__cta" href="#" data-ir-lote="' + l.id + '">Ver este lote en el plano →</a>' +
+        ctaWa("Apartar el lote " + l.id, resumenLote(l, pct, meses) + "\n\nQuiero saber cómo separarlo."), ["Agendar visita", "Lotes parecidos"]);
     }
     if (e.loteNo) return W("No encuentro el lote <b>" + e.loteNo + "</b> en el plano. Revisa la manzana y el número (ejemplo: G-12).");
 
@@ -93,6 +103,22 @@
       return W("¡Hola! Soy <b>Olimpo</b>. Puedo decirte qué lotes hay disponibles, cuánto cuestan, simular tu cuota o explicarte la financiación. ¿Qué te gustaría saber?", ["Lotes más económicos", "¿Tiene intereses?", "¿Dónde queda?"]);
     if (has(t, ["gracias", "muy amable", "perfecto", "listo"]) && t.split(" ").length <= 5)
       return W("¡Con gusto! Cuando quieras dar el siguiente paso, un asesor te acompaña por WhatsApp.", ["Hablar con un asesor"]);
+
+    /* ---------- objeciones: se reconocen, se responden con un dato real y se cierra con el paso fácil ---------- */
+    if (has(t, ["caro", "costoso", "muy alto", "no me alcanza", "no puedo pagar", "esta duro", "rebaja", "descuento"])) {
+      var baratos = disp.slice().sort(function (a, b) { return cuota(a.precio, F.default_down_payment, regla(a.area).max_months) - cuota(b.precio, F.default_down_payment, regla(b.area).max_months); }).slice(0, 3);
+      return W("Te entiendo, y mira que hay opciones para todos los bolsillos. Estos son los de <b>cuota más baja</b> hoy:<ul>" + baratos.map(filaLote).join("") + "</ul>" +
+        "Y si das una cuota inicial más alta, la mensual baja todavía más. <b>¿Cuánto podrías pagar cómodo al mes?</b> Te busco el lote que encaje.", ["Hasta $1,5 M al mes", "Hasta $2,5 M al mes", "Hablar con un asesor"]);
+    }
+    if (has(t, ["lo voy a pensar", "lo pienso", "pensarlo", "mas adelante", "despues", "luego te", "no por ahora", "todavia no"]))
+      return W("Claro que sí, esta es una decisión de tierra: se piensa. Solo te digo una cosa con honestidad: el inventario cambia todos los días y los lotes se van reservando.<br>Lo que no compromete a nada es <b>venir a conocerlo</b>. La mayoría decide cuando pisa el terreno. <b>¿Te sirve un sábado?</b>" +
+        ctaWa("Agendar mi visita", "Hola, quiero agendar una visita a Santa Clara – Poblado Campestre para conocer el proyecto."), ["Agendar visita", "Lotes más económicos"]);
+    if (has(t, ["mi esposa", "mi esposo", "mi marido", "mi mujer", "mi socio", "mi familia", "consultarlo", "hablar con mi"]))
+      return W("Me parece perfecto, esto se decide en pareja. Te mando el resumen del lote por WhatsApp para que lo vean juntos, y los esperamos a los dos en la visita." +
+        ctaWa("Enviarme el resumen", "Hola, quiero que me envíen la información de Santa Clara para revisarla en familia y agendar una visita."), ["Agendar visita"]);
+    if (has(t, ["estafa", "estafar", "robar", "es real", "sera verdad", "desconfio", "miedo", "seguro comprar", "garantia"]))
+      return W("Es una duda sana y se responde con hechos: Monte Olimpo ya entregó <b>cuatro proyectos vendidos al 100%</b>, cada lote tiene su <b>número de matrícula</b> y la financiación es <b>directa con la empresa, sin bancos</b>. Además puedes venir a pisar el terreno antes de pagar nada. <b>¿Agendamos tu visita?</b>" +
+        ctaWa("Agendar mi visita", "Hola, quiero conocer Santa Clara y que me expliquen el proceso de compra."), ["Agendar visita", "Hablar con un asesor"]);
 
     // propósito de compra: primero entender, luego recomendar
     if (has(t, ["casa de descanso", "construir", "finca", "vivir", "invertir", "inversion", "valorizacion", "para mi familia", "jubil"]) && !e.dinero && !e.area)
@@ -105,7 +131,9 @@
       if (!rec.total) return W("Con " + pesos(e.dinero) + " al mes todavía no alcanza ningún lote. La cuota más baja hoy es <b>" + pesos(rec.minimo.cuota) + "</b> (lote " + linkLote(rec.minimo.l) + ", " + nf.format(rec.minimo.l.area) + " m²). Si das una cuota inicial mayor, la cuota baja. ¿Lo revisamos con un asesor?", ["Hablar con un asesor"]);
       return W("Con <b>" + pesos(e.dinero) + " al mes</b> puedes elegir entre <b>" + rec.total + " lotes</b>. Mis recomendaciones:<ul>" +
         rec.opciones.map(function (x) { return "<li>" + linkLote(x.o.l) + " · " + x.etiqueta.toLowerCase() + ": " + nf.format(x.o.l.area) + " m², " + x.o.l.ubic + ", <b>" + pesos(x.o.cuota) + "/mes</b> a " + x.o.meses + " meses (inicial " + pesos(x.o.inicial) + ")</li>"; }).join("") +
-        "</ul>Toca un código para verlo en el plano. ¿Te gustaría visitarlo?", ["Agendar visita", "Separar un lote"]);
+        "</ul>Toca un código para verlo en el plano. <b>¿Te queda mejor conocerlo un sábado o entre semana?</b>" +
+        ctaWa("Agendar mi visita", "Hola, puedo pagar alrededor de " + pesos(e.dinero) + " al mes y me interesan estos lotes de Santa Clara: " +
+          rec.opciones.map(function (x) { return x.o.l.id; }).join(", ") + ".\n\nQuiero agendar una visita."), ["Agendar visita", "Separar un lote"]);
     }
 
     // asesor humano
@@ -136,7 +164,8 @@
       ls.sort(function (a, b) { return grande ? b.area - a.area : a.precio - b.precio; });
       var filtros = [e.area ? "de unos " + e.area + " m²" : "", e.ubic ? "en ubicación " + e.ubic.toLowerCase() : "", e.etapa ? "de la etapa " + e.etapa : "", e.dinero ? "hasta " + millones(e.dinero) : ""].filter(Boolean).join(", ");
       if (!ls.length) return W("No encuentro lotes disponibles " + filtros + ". Prueba con otra área o presupuesto, o pregúntale a un asesor.", ["Lotes más económicos", "Hablar con un asesor"]);
-      return W("Hay <b>" + ls.length + " lotes disponibles</b>" + (filtros ? " " + filtros : "") + ". " + (grande ? "Los más grandes" : "Los más económicos") + ":<ul>" + ls.slice(0, 4).map(filaLote).join("") + "</ul>Toca un código para verlo en el plano.", ["Simular cuota", "Lotes en el lago"]);
+      return W("Hay <b>" + ls.length + " lotes disponibles</b>" + (filtros ? " " + filtros : "") + ". " + (grande ? "Los más grandes" : "Los más económicos") + ":<ul>" + ls.slice(0, 4).map(filaLote).join("") + "</ul>" +
+        "Toca un código para verlo en el plano. <b>¿Cuál te llama más la atención?</b> Te digo su cuota exacta y lo dejamos agendado para que lo conozcas.", ["Agendar visita", "Simular cuota", "Hablar con un asesor"]);
     }
 
     // simular cuota con un valor
@@ -312,8 +341,9 @@
       var w = e.target.closest("[data-wa-olimpo]");
       if (w) {
         e.preventDefault();
-        var msg = w.getAttribute("data-wa-olimpo") === "visita" ? "Hola, quiero agendar una visita a Santa Clara – Poblado Campestre." :
-          "Hola, vengo del asistente Olimpo de la página web." + (ultima ? " Mi pregunta: " + ultima : "");
+        var msg = w.getAttribute("data-wa-msg") ||
+          (w.getAttribute("data-wa-olimpo") === "visita" ? "Hola, quiero agendar una visita a Santa Clara – Poblado Campestre." :
+            "Hola, vengo del asistente Olimpo de la página web." + (ultima ? " Mi pregunta: " + ultima : ""));
         window.open(MO.waLink(msg), "_blank", "noopener");
       }
     });
