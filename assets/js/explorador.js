@@ -543,7 +543,7 @@
     }).slice(0, 3);
     return '<div class="ficha">' +
       '<div class="ficha__top"><div><span class="kicker v">' + (res ? "Lote reservado" : "Lote vendido") + "</span><h3>" + nombreLote(l) + "</h3></div>" + close + "</div>" +
-      '<div class="pills"><span class="pill ' + (res ? "res" : "no") + '">' + (res ? "Reservado" : "Vendido") + "</span>" + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + "</div>" +
+      '<div class="pills"><span class="pill ' + "no" + '">' + (res ? "Reservado" : "Vendido") + "</span>" + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + "</div>" +
       '<p style="color:var(--sc-tinta-2)">' + (res ? "Otro cliente separó este lote. Si se libera, tu asesor te avisa. Mientras tanto, estos lotes disponibles se le parecen:" : "Este lote ya tiene propietario. Estos lotes disponibles se le parecen en área y ubicación:") + "</p>" +
       '<div class="similar"><h4>Lotes similares disponibles</h4><ul class="lotlist">' +
       sims.map(function (s) { return '<li><button type="button" data-id="' + s.id + '"><span class="id">' + s.id + '</span><span class="a">' + fmtN.format(s.area) + " m² · " + s.ubic + '</span><span class="p">' + MO.pesos(s.precio) + '</span><span class="c">desde ' + MO.pesos(cuotaDesde(s)) + "/mes</span></button></li>"; }).join("") +

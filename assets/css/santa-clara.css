@@ -492,8 +492,6 @@
 @media (max-width:560px){.ubi__tag{bottom:60px}.ubi__ver{left:14px;right:14px}}
 .cerca--ubi li{padding:14px}
 
-/* Lotes reservados (hoja de la empresa) */
-.map .lot.reservado{fill:#F3D48A;stroke:#FDFBF4}
-.map .lot.reservado:hover{fill:#EDC467}
-.lg-r{background:#F3D48A;border-color:#C99A2E}
-.pill.res{background:#FFF3D6;border-color:#EBCB86;color:#8A5A00}
+/* Lotes reservados (hoja de la empresa): se ven como vendidos, no como disponibles */
+.map .lot.reservado{fill:var(--vend);stroke:#FDFBF4}
+.map .lot.reservado:hover{fill:#D8A08A}
