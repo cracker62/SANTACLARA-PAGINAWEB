@@ -14,7 +14,7 @@
     --marino:#1B2A45; --marino-2:#243659; --lago:#1670B8; --sol:#F4A62A;
     --arena:#F6F4EF; --arena-2:#ECE7DC; --linea:#DAD4C6; --tinta:#1B2A45; --tinta-2:#56617A;
     --pasto:#DCE5CB; --calle:#F4EEE1; --lote:#C9E2A2; --lote-borde:#6E9A4C;
-    --vend:#E9B9A5; --agua:#A8CFE6; --agua-borde:#6FA5CB; --verde-wa:#1F7A4D;
+    --vend:#E9B9A5; --agua:#A8CFE6; --agua-borde:#6FA5CB; --verde:#1C7A4E; --verde-2:#14603C;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -28,7 +28,10 @@
   .barra input::placeholder{color:rgba(255,255,255,.5)}
   .barra select option{color:#000}
   .barra .crece{flex:1 1 180px}
-  .btn-pdf{margin-left:auto;font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:var(--sol);color:var(--marino);cursor:pointer}
+  .btn-wa{margin-left:auto;font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:#25D366;color:#0B3B23;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .btn-wa:hover{background:#1FBE5A}
+  .btn-wa svg{width:17px;height:17px;fill:currentColor}
+  .btn-pdf{font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:var(--sol);color:var(--marino);cursor:pointer}
   .btn-pdf:hover{background:#FFC15A}
   .btn-volver{font-family:inherit;font-size:13px;font-weight:600;padding:11px 16px;border-radius:2px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;text-decoration:none}
   .ayuda{max-width:920px;margin:0 auto;padding:10px 16px 0;font-size:12.5px;color:var(--tinta-2)}
@@ -67,10 +70,16 @@
   .pago li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid var(--arena-2);font-size:13.5px}
   .pago li:last-child{border-bottom:0}
   .pago b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .pago .destacado{background:#FDF3E2;margin:6px -16px 0;padding:12px 16px;border-bottom:0;border-top:1px solid var(--sol)}
-  .pago .destacado span{font-weight:600}
-  .pago .destacado b{color:var(--marino);font-size:19px}
-  .pago .nota{color:var(--tinta-2);font-size:12px}
+  .pago .tot{border-bottom:0;border-top:1px solid var(--linea);margin-top:4px;padding-top:11px}
+  .pago .tot span{font-weight:600}
+  .pago .tot b{color:var(--marino)}
+  .rango{margin:10px 0 0;color:var(--tinta-2);font-size:11.5px;line-height:1.5}
+
+  /* la cuota mensual es lo que el cliente busca: va en verde y grande */
+  .hero-cuota{background:var(--verde);color:#fff;padding:15px 16px;display:grid;gap:2px;border-bottom:1px solid var(--linea)}
+  .hero-cuota .et{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82)}
+  .hero-cuota b{font-size:30px;font-weight:700;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .hero-cuota .nota{font-size:12px;color:rgba(255,255,255,.88)}
 
   /* plano */
   .plano{margin-top:18px;break-inside:avoid}
@@ -121,7 +130,9 @@
     .total b{font-size:18px}
     .pago li{padding:6px 0;font-size:11px}
     .pago b{font-size:12.5px}
-    .pago .destacado b{font-size:15px}
+    .hero-cuota{padding:11px 12px}
+    .hero-cuota b{font-size:23px}
+    .rango{font-size:9.5px;margin-top:7px}
     .plano,.cuotas{margin-top:10px}
     .plano svg{height:auto;max-height:none}
     .plano{break-inside:avoid}
@@ -149,11 +160,12 @@
     <label>Plazo
       <select id="c-meses"></select>
     </label>
+    <button type="button" class="btn-wa" id="c-wa-enviar">Enviar al asesor por WhatsApp</button>
     <button type="button" class="btn-pdf" id="c-pdf">Descargar PDF</button>
     <a class="btn-volver" href="./#lotes">Volver al plano</a>
   </div>
 </div>
-<p class="ayuda">Al tocar <b>Descargar PDF</b> se abre la ventana de impresión: elige <b>«Guardar como PDF»</b> como destino. En el celular está dentro de Compartir → Imprimir.</p>
+<p class="ayuda"><b>Enviar al asesor</b> abre WhatsApp con esta cotización lista para mandar; el asesor la recibe y tú la conservas en tu chat. <b>Descargar PDF</b> abre la ventana de impresión: elige «Guardar como PDF» (en el celular está en Compartir → Imprimir).</p>
 
 <main class="hoja" data-hoja hidden>
   <header class="cab">
@@ -191,15 +203,20 @@
       </section>
 
       <section class="caja">
-        <h2>Plan de pago estimado</h2>
+        <h2>Plan de pago</h2>
+        <div class="hero-cuota">
+          <span class="et">Tu cuota mensual</span>
+          <b data-p-cuota></b>
+          <span class="nota"><span data-p-meses></span> cuotas fijas · sin intereses · sin bancos</span>
+        </div>
         <div class="caja__in">
           <ul class="pago">
-            <li data-p-sep-caja><span>Separación</span><b data-p-sep></b></li>
+            <li data-p-sep-caja><span>Separación para apartarlo</span><b data-p-sep></b></li>
             <li><span>Cuota inicial · <span data-p-pct></span></span><b data-p-ini></b></li>
             <li><span>Saldo a financiar · <span data-p-saldo-pct></span></span><b data-p-saldo></b></li>
-            <li class="destacado"><span><span data-p-meses></span> cuotas mensuales sin intereses</span><b data-p-cuota></b></li>
-            <li class="nota" data-p-rango></li>
+            <li class="tot"><span>Valor total del lote</span><b data-p-total></b></li>
           </ul>
+          <p class="rango" data-p-rango></p>
         </div>
       </section>
     </div>
@@ -232,6 +249,7 @@
 <script src="data/santa-clara.js?v=11"></script>
 <script src="api/inventario"></script>
 <script src="assets/js/comun.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=10"></script>
+<script src="assets/js/terreno.js?v=10"></script>
+<script src="assets/js/cotizacion.js?v=13"></script>
 </body>
 </html>

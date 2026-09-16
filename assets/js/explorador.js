@@ -527,7 +527,7 @@
       '<div class="actions">' +
         '<a class="btn btn--sol" data-act="quiero">Quiero este lote</a>' +
         '<a class="btn btn--wa" data-act="proyeccion">Enviar proyección por WhatsApp</a>' +
-        '<a class="btn btn--line" data-cotizacion>Descargar cotización en PDF</a>' +
+        '<a class="btn btn--sol" data-cotizacion>Enviar cotización</a>' +
         '<div class="row2"><a class="btn btn--line" data-act="asesor">Hablar con un asesor</a><a class="btn btn--line" data-act="visita">Agendar visita</a></div>' +
         '<button type="button" class="share" data-share>Compartir este lote</button>' +
       "</div>" +
