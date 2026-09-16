@@ -495,3 +495,6 @@
 /* Lotes reservados (hoja de la empresa): se ven como vendidos, no como disponibles */
 .map .lot.reservado{fill:var(--vend);stroke:#FDFBF4}
 .map .lot.reservado:hover{fill:#D8A08A}
+
+/* Nota de cierre del plan de pagos (cuotas cerradas y última cuota) */
+.ficha .cierre-nota{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--sc-tinta-2)}

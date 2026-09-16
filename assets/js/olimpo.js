@@ -31,7 +31,9 @@
   function regla(area) {
     for (var i = 0; i < F.financing_rules.length; i++) { var r = F.financing_rules[i]; if (r.hasta_m2 === null || area <= r.hasta_m2) return r; }
   }
-  function cuota(valor, pct, meses) { return Math.round((valor - valor * pct / 100) / meses); }
+  // Misma cuenta que el resto del sitio: cuotas cerradas y última cuota de ajuste
+  function cuota(valor, pct, meses) { return MO.proyeccion(valor, pct, meses).cuota; }
+  function plan(valor, pct, meses) { return MO.proyeccion(valor, pct, meses); }
 
   /* ---------- extracción de datos del mensaje ---------- */
   function extraer(raw) {
@@ -91,7 +93,7 @@
       if (l.estado !== "disponible") return W("El lote <b>" + l.id + "</b> aparece como <b>" + (l.estado === "tecnico" ? "zona técnica" : "próximamente") + "</b> y no tiene precio publicado. Tu asesor te puede dar novedades.", ["Hablar con un asesor"]);
       var r = regla(l.area), meses = e.meses ? Math.min(Math.max(e.meses, r.min_months), r.max_months) : r.max_months, pct = e.pct && F.down_payment_options.indexOf(e.pct) !== -1 ? e.pct : F.default_down_payment;
       var ajuste = e.meses && meses !== e.meses ? " (para este lote el plazo de referencia es de " + r.min_months + " a " + r.max_months + " meses)" : "";
-      return W("¡Buena elección! <b>Mz. " + l.mz + " · Lote " + l.n + "</b><ul><li>Área: " + nf.format(l.area) + " m²</li><li>Valor: <b>" + pesos(l.precio) + "</b></li><li>Ubicación: " + l.ubic + " · Etapa " + l.etapa + "</li><li>Cuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "</li><li>Cuota mensual a " + meses + " meses: <b>" + pesos(cuota(l.precio, pct, meses)) + "</b>" + ajuste + "</li></ul>" +
+      return W("¡Buena elección! <b>Mz. " + l.mz + " · Lote " + l.n + "</b><ul><li>Área: " + nf.format(l.area) + " m²</li><li>Valor: <b>" + pesos(l.precio) + "</b></li><li>Ubicación: " + l.ubic + " · Etapa " + l.etapa + "</li><li>Cuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "</li><li>Cuota mensual a " + plan(l.precio, pct, meses).meses + " meses: <b>" + pesos(plan(l.precio, pct, meses).cuota) + "</b> (última: " + pesos(plan(l.precio, pct, meses).ultima) + ")" + ajuste + "</li></ul>" +
         "Hoy está disponible, pero el inventario cambia todos los días. <b>¿Prefieres venir a verlo o que te lo aparten a tu nombre?</b>" +
         '<a class="olimpo__cta" href="#" data-ir-lote="' + l.id + '">Ver este lote en el plano →</a>' +
         ctaWa("Apartar el lote " + l.id, resumenLote(l, pct, meses) + "\n\nQuiero saber cómo separarlo."), ["Agendar visita", "Lotes parecidos"]);

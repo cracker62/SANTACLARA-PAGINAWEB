@@ -18,24 +18,39 @@
     return rules[rules.length - 1];
   }
 
-  /* valor_lote × % inicial; saldo / meses. Sin intereses. La última cuota absorbe el redondeo. */
+  /* Cuota cerrada: se sube al siguiente múltiplo del paso definido en la configuración
+     (por ejemplo 1.690.000 → 1.700.000). Siempre hacia arriba, nunca hacia abajo. */
+  function cuotaCerrada(monto) {
+    var paso = CFG.financiacion.redondeo_cuota;
+    if (!paso || paso < 1) return Math.round(monto);
+    return Math.ceil(monto / paso) * paso;
+  }
+
+  /* valor_lote × % inicial; saldo / meses. Sin intereses.
+     Las cuotas mensuales son cerradas y la última se ajusta para que la suma dé exactamente el saldo. */
   function proyeccion(valor, pctInicial, meses) {
     var inicial = Math.round(valor * pctInicial / 100);
     var saldo = valor - inicial;
-    var cuota = Math.round(saldo / meses);
+    var cuota = cuotaCerrada(saldo / meses);
+    // Si al redondear hacia arriba el saldo se termina antes, se recorta el plazo: nadie paga de más.
+    while (meses > 1 && cuota * (meses - 1) >= saldo) meses--;
+    // Si el sobrante del último mes queda muy pequeño, se suma a la cuota anterior:
+    // así no queda una cuota final ridícula y el cierre cae dentro del mismo plazo.
+    if (meses > 1 && saldo - cuota * (meses - 1) < cuota * .5) meses--;
     var filas = [], pendiente = saldo;
     for (var m = 1; m <= meses; m++) {
       var c = m === meses ? pendiente : cuota;
       pendiente -= c;
       filas.push({ mes: m, cuota: c, saldo: pendiente });
     }
-    return { valor: valor, inicial: inicial, saldo: saldo, cuota: cuota, meses: meses, filas: filas };
+    var ultima = filas[filas.length - 1].cuota;
+    return { valor: valor, inicial: inicial, saldo: saldo, cuota: cuota, ultima: ultima, meses: meses, filas: filas };
   }
 
   /* Cuota de un lote con el plazo máximo de referencia para su área */
   function cuotaLote(l, pct) {
-    var r = reglaPlazo(l.area);
-    return { cuota: Math.round((l.precio - l.precio * pct / 100) / r.max_months), meses: r.max_months, inicial: Math.round(l.precio * pct / 100) };
+    var r = reglaPlazo(l.area), p = proyeccion(l.precio, pct, r.max_months);
+    return { cuota: p.cuota, ultima: p.ultima, meses: p.meses, inicial: p.inicial };
   }
 
   /* Recomienda lotes disponibles para un presupuesto mensual.

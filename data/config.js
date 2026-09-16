@@ -20,6 +20,9 @@ window.MO_CONFIG = {
     default_down_payment: 20,         // % cuota inicial de referencia
     down_payment_options: [20, 25, 30],
     reservation_amount: 500000,       // valor de separación en pesos. null = "Consúltalo con tu asesor"
+    // Las cuotas mensuales se redondean HACIA ARRIBA a este múltiplo para que sean cifras cerradas
+    // (ej. 1.690.000 → 1.700.000). La última cuota se ajusta para que la suma dé exactamente el saldo.
+    redondeo_cuota: 50000,
     // Plazos de referencia según área del lote (m²). Se negocian con el asesor comercial.
     financing_rules: [
       { hasta_m2: 499,  min_months: 18, max_months: 24 },

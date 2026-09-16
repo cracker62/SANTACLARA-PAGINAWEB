@@ -29,6 +29,18 @@ function reglaPlazo(cfg, area) {
   return cfg.financiacion.financing_rules.find((r) => r.hasta_m2 === null || area <= r.hasta_m2);
 }
 
+/* Mismo cálculo del sitio: cuotas cerradas (redondeadas hacia arriba) y última cuota de ajuste. */
+function proyeccion(cfg, valor, pct, meses) {
+  const F = cfg.financiacion;
+  const inicial = Math.round(valor * pct / 100);
+  const saldo = valor - inicial;
+  const paso = F.redondeo_cuota;
+  const cuota = paso > 0 ? Math.ceil(saldo / meses / paso) * paso : Math.round(saldo / meses);
+  while (meses > 1 && cuota * (meses - 1) >= saldo) meses--;
+  if (meses > 1 && saldo - cuota * (meses - 1) < cuota * 0.5) meses--;
+  return { inicial, saldo, cuota, meses, ultima: saldo - cuota * (meses - 1) };
+}
+
 /* Texto del system prompt: se reconstruye cada 5 minutos con el inventario vigente
    (entre reconstrucciones es idéntico, así se aprovecha el caché de prompts). */
 let SYSTEM = null, SYSTEM_T = 0;
@@ -51,8 +63,8 @@ async function systemPrompt() {
     .sort((a, b) => a.id.localeCompare(b.id, "es", { numeric: true }))
     .map((l) => {
       const r = reglaPlazo(cfg, l.area);
-      const cuota = Math.round((l.precio * (1 - F.default_down_payment / 100)) / r.max_months);
-      return `${l.id} | ${l.area} m² | ${pesos(l.precio)} | ${l.ubic} | etapa ${l.etapa} | matrícula ${l.mat} | inicial 20% ${pesos(l.precio * 0.2)} | cuota ${pesos(cuota)} a ${r.max_months} meses`;
+      const p = proyeccion(cfg, l.precio, F.default_down_payment, r.max_months);
+      return `${l.id} | ${l.area} m² | ${pesos(l.precio)} | ${l.ubic} | etapa ${l.etapa} | matrícula ${l.mat} | inicial ${F.default_down_payment}% ${pesos(p.inicial)} | cuota ${pesos(p.cuota)} × ${p.meses} meses (última ${pesos(p.ultima)})`;
     })
     .join("\n");
   const preguntas = faq.map((f) => `P: ${f.p}\nR: ${f.r}`).join("\n\n");
@@ -113,7 +125,7 @@ Desarrolladora de proyectos campestres en el Atlántico, Colombia. Ya vendió al
 - El plano interactivo está en la portada del sitio (cada lote se abre con /?lote=CÓDIGO). La página de la empresa está en /empresa.
 
 # Financiación
-Directa con Monte Olimpo, sin bancos y sin intereses. Cuota inicial de referencia ${F.default_down_payment}% (se puede simular con ${F.down_payment_options.join(", ")}%). Saldo = valor − cuota inicial; cuota mensual = saldo ÷ meses. Plazos de referencia según el área:
+Directa con Monte Olimpo, sin bancos y sin intereses. Cuota inicial de referencia ${F.default_down_payment}% (se puede simular con ${F.down_payment_options.join(", ")}%). Saldo = valor − cuota inicial; la cuota mensual es el saldo ÷ meses REDONDEADO HACIA ARRIBA a múltiplos de ${pesos(F.redondeo_cuota)} para que sea una cifra cerrada, y la última cuota se ajusta para cerrar el pago exacto (por eso el plazo puede quedar un mes más corto que el máximo). Usa siempre las cuotas de la lista de abajo: no las recalcules tú. Plazos de referencia según el área:
 ${plazos}
 
 # Inventario de lotes DISPONIBLES (código | área | valor | ubicación | etapa | matrícula | inicial 20% | cuota con el plazo máximo)

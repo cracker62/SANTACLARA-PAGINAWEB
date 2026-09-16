@@ -522,6 +522,7 @@
         '<dl class="kv" style="border-top:1px solid var(--sc-linea);padding-top:6px"><dt>Cuota inicial <span data-o-pct></span></dt><dd data-o-ini></dd><dt>Saldo a financiar</dt><dd data-o-saldo></dd>' +
           "<dt>Separación</dt><dd>" + (F.reservation_amount ? MO.pesos(F.reservation_amount) : "Consúltala con tu asesor") + "</dd></dl>" +
         '<div class="cuota"><span>Cuota mensual</span><b data-o-cuota></b></div>' +
+        '<p class="cierre-nota" data-o-cierre></p>' +
         '<details class="proj-table"><summary>Ver proyección mes a mes</summary><div class="tbl-wrap"><table><thead><tr><th>Mes</th><th>Cuota</th><th>Saldo pendiente</th></tr></thead><tbody data-o-tabla></tbody></table></div></details>' +
       "</div>" +
       '<div class="actions">' +
@@ -572,6 +573,7 @@
       $("[data-o-ini]", box).textContent = MO.pesos(proy.inicial);
       $("[data-o-saldo]", box).textContent = MO.pesos(proy.saldo);
       $("[data-o-cuota]", box).textContent = MO.pesos(proy.cuota);
+      $("[data-o-cierre]", box).textContent = "Cuotas cerradas de " + MO.pesos(proy.cuota) + ". La última, en el mes " + proy.meses + ", es de " + MO.pesos(proy.ultima) + " y cierra el pago.";
       $("[data-o-tabla]", box).innerHTML = '<tr class="ini"><td>Inicial</td><td>' + MO.pesos(proy.inicial) + "</td><td>" + MO.pesos(proy.saldo) + "</td></tr>" +
         proy.filas.map(function (f) { return "<tr><td>Mes " + f.mes + "</td><td>" + MO.pesos(f.cuota) + "</td><td>" + MO.pesos(f.saldo) + "</td></tr>"; }).join("");
       links();

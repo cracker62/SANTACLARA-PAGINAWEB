@@ -68,11 +68,14 @@
     $("[data-p-ini]").textContent = MO.pesos(proy.inicial);
     $("[data-p-saldo-pct]").textContent = (100 - pct) + "%";
     $("[data-p-saldo]").textContent = MO.pesos(proy.saldo);
-    $("[data-p-meses]").textContent = meses;
+    $("[data-p-meses]").textContent = proy.meses;
     $("[data-p-cuota]").textContent = MO.pesos(proy.cuota);
     $("[data-p-total]").textContent = MO.pesos(lote.precio);
-    $("[data-p-rango]").textContent = "Para un lote de " + nf.format(lote.area) + " m² el plazo de referencia va de " +
-      regla.min_months + " a " + regla.max_months + " meses y se acuerda con tu asesor.";
+    $("[data-p-ultima]").textContent = MO.pesos(proy.ultima);
+    $("[data-p-ultima-mes]").textContent = proy.meses;
+    $("[data-p-rango]").textContent = "Las cuotas son cifras cerradas y la última ajusta el cierre exacto del pago. " +
+      "Para un lote de " + nf.format(lote.area) + " m² el plazo de referencia va de " + regla.min_months + " a " +
+      regla.max_months + " meses y se acuerda con tu asesor.";
 
     var celdas = proy.filas.map(function (f) {
       return "<div><span>Mes " + f.mes + "</span><b>" + MO.pesos(f.cuota) + "</b></div>";
@@ -81,8 +84,8 @@
 
     var estado = lote.estado === "disponible" ? "" :
       " Este lote aparece hoy como " + (lote.estado === "reservado" ? "reservado por otro cliente" : lote.estado === "vendido" ? "vendido" : "no disponible") + ": confirma con tu asesor antes de avanzar.";
-    $("[data-aviso]").textContent = "*Proyección con cuota inicial del " + pct + "% y saldo a " + meses +
-      " cuotas mensuales sin intereses. " + F.aviso + estado + " Cotización generada el " + fecha + ".";
+    $("[data-aviso]").textContent = "*Proyección con cuota inicial del " + pct + "% y saldo a " + proy.meses +
+      " cuotas mensuales sin intereses, redondeadas a cifras cerradas; la última cuota ajusta el total. " + F.aviso + estado + " Cotización generada el " + fecha + ".";
   }
 
   function pintarCliente() {
