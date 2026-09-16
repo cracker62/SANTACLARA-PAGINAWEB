@@ -19,7 +19,7 @@ window.MO_CONFIG = {
     interest_rate: 0,                 // sin intereses
     default_down_payment: 20,         // % cuota inicial de referencia
     down_payment_options: [20, 25, 30],
-    reservation_amount: null,         // valor de separación en pesos. null = "Consúltalo con tu asesor"
+    reservation_amount: 500000,       // valor de separación en pesos. null = "Consúltalo con tu asesor"
     // Plazos de referencia según área del lote (m²). Se negocian con el asesor comercial.
     financing_rules: [
       { hasta_m2: 499,  min_months: 18, max_months: 24 },

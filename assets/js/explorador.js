@@ -527,6 +527,7 @@
       '<div class="actions">' +
         '<a class="btn btn--sol" data-act="quiero">Quiero este lote</a>' +
         '<a class="btn btn--wa" data-act="proyeccion">Enviar proyección por WhatsApp</a>' +
+        '<a class="btn btn--line" data-cotizacion>Descargar cotización en PDF</a>' +
         '<div class="row2"><a class="btn btn--line" data-act="asesor">Hablar con un asesor</a><a class="btn btn--line" data-act="visita">Agendar visita</a></div>' +
         '<button type="button" class="share" data-share>Compartir este lote</button>' +
       "</div>" +
@@ -590,6 +591,13 @@
         "asesor-general": "Hola, vi que el lote " + l.id + " de Santa Clara está " + (l.estado === "reservado" ? "reservado" : "vendido") + ". ¿Me ayudan a encontrar uno similar?",
         proximo: "Hola, quiero información sobre el lote " + l.id + " de Santa Clara, que aparece como próximamente."
       };
+      var cot = $("[data-cotizacion]", box);
+      if (cot) {
+        // La cotización se abre con la simulación que la persona tiene en pantalla
+        cot.href = "cotizacion.html?lote=" + encodeURIComponent(l.id) + "&pct=" + sim.pct + "&meses=" + sim.meses;
+        cot.target = "_blank"; cot.rel = "noopener";
+        cot.onclick = function () { track("cotizacion_abrir", { lote: l.id, meses: sim.meses, inicial: sim.pct }); };
+      }
       $$("[data-act]", box).forEach(function (a) {
         a.href = MO.waLink(msgs[a.dataset.act]); a.target = "_blank"; a.rel = "noopener";
         a.onclick = function () { track("whatsapp_click", { lote: l.id, accion: a.dataset.act, meses: sim.meses, inicial: sim.pct }); };

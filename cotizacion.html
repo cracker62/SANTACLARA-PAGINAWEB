@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotización · Santa Clara · Poblado Campestre</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --marino:#1B2A45; --marino-2:#243659; --lago:#1670B8; --sol:#F4A62A;
+    --arena:#F6F4EF; --arena-2:#ECE7DC; --linea:#DAD4C6; --tinta:#1B2A45; --tinta-2:#56617A;
+    --pasto:#DCE5CB; --calle:#F4EEE1; --lote:#C9E2A2; --lote-borde:#6E9A4C;
+    --vend:#E9B9A5; --agua:#A8CFE6; --agua-borde:#6FA5CB; --verde-wa:#1F7A4D;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  body{margin:0;background:#E7E3DA;color:var(--tinta);font-family:Montserrat,"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.5}
+
+  /* ---------- barra de control (no se imprime) ---------- */
+  .barra{position:sticky;top:0;z-index:5;background:var(--marino);color:#fff;padding:12px 16px}
+  .barra__in{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .barra label{display:flex;flex-direction:column;gap:4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.72)}
+  .barra input,.barra select{font-family:inherit;font-size:14px;padding:8px 10px;border-radius:2px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;min-width:150px}
+  .barra input::placeholder{color:rgba(255,255,255,.5)}
+  .barra select option{color:#000}
+  .barra .crece{flex:1 1 180px}
+  .btn-pdf{margin-left:auto;font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:var(--sol);color:var(--marino);cursor:pointer}
+  .btn-pdf:hover{background:#FFC15A}
+  .btn-volver{font-family:inherit;font-size:13px;font-weight:600;padding:11px 16px;border-radius:2px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;text-decoration:none}
+  .ayuda{max-width:920px;margin:0 auto;padding:10px 16px 0;font-size:12.5px;color:var(--tinta-2)}
+
+  /* ---------- la hoja ---------- */
+  .hoja{max-width:920px;margin:18px auto 40px;background:#fff;padding:0 0 22px;box-shadow:0 18px 50px -24px rgba(27,42,69,.5)}
+  .cab{background:var(--marino);color:#fff;padding:22px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .cab__t{display:flex;flex-direction:column;gap:3px}
+  .cab .kicker{font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--sol)}
+  .cab .fecha{font-size:12px;color:rgba(255,255,255,.75)}
+  .cab img{height:48px;width:auto}
+  .cliente{background:var(--arena);border-bottom:1px solid var(--linea);padding:11px 30px;font-size:13px;display:flex;flex-wrap:wrap;gap:20px}
+  .cliente b{font-weight:700}
+  .cliente span{color:var(--tinta-2)}
+
+  .cuerpo{padding:24px 30px 0}
+  .titulo{margin:0 0 3px;font-size:27px;font-weight:700;letter-spacing:-.02em}
+  .subtitulo{margin:0 0 20px;color:var(--tinta-2);font-size:13px}
+
+  .par{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .caja{border:1px solid var(--linea);border-radius:3px;overflow:hidden}
+  .caja h2{margin:0;padding:12px 16px;font-size:14.5px;font-weight:700;background:var(--arena);border-bottom:1px solid var(--linea)}
+  .caja__in{padding:14px 16px}
+
+  .campos{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:0}
+  .campo{display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--arena-2);padding-bottom:7px}
+  .campo dt{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--tinta-2)}
+  .campo dd{margin:0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .campo--ancho{grid-column:1 / -1}
+
+  .total{margin-top:14px;background:var(--marino);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-radius:2px}
+  .total span{font-size:13px;font-weight:600}
+  .total b{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+  .pago{list-style:none;margin:0;padding:0}
+  .pago li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid var(--arena-2);font-size:13.5px}
+  .pago li:last-child{border-bottom:0}
+  .pago b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pago .destacado{background:#FDF3E2;margin:6px -16px 0;padding:12px 16px;border-bottom:0;border-top:1px solid var(--sol)}
+  .pago .destacado span{font-weight:600}
+  .pago .destacado b{color:var(--marino);font-size:19px}
+  .pago .nota{color:var(--tinta-2);font-size:12px}
+
+  /* plano */
+  .plano{margin-top:18px;break-inside:avoid}
+  .plano svg{display:block;width:100%;height:auto;background:var(--pasto)}
+  .plano .pin-cartel{font-size:11px;font-weight:700;fill:#fff;letter-spacing:.06em}
+  .plano .pin-sub{font-size:10.5px;font-weight:600;fill:rgba(255,255,255,.88)}
+  .plano .mz-eti{font-size:15px;font-weight:700;fill:rgba(27,42,69,.42)}
+
+  /* tabla de cuotas */
+  .cuotas{margin-top:18px}
+  .cuotas .caja__in{padding:12px 16px 14px}
+  .grid-cuotas{display:grid;grid-template-columns:repeat(4,1fr);gap:0 18px}
+  .grid-cuotas div{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3.5px 0;border-bottom:1px solid var(--arena-2);font-variant-numeric:tabular-nums}
+  .grid-cuotas div span{color:var(--tinta-2)}
+  .grid-cuotas div b{font-weight:600}
+
+  .aviso{margin:16px 30px 0;font-size:10.5px;line-height:1.55;color:var(--tinta-2)}
+  .pie{margin:16px 30px 0;padding-top:12px;border-top:1px solid var(--linea);display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--tinta-2)}
+  .pie b{color:var(--tinta)}
+
+  .error{max-width:920px;margin:40px auto;background:#fff;padding:30px;text-align:center}
+  .error a{color:var(--lago)}
+
+  @media screen and (max-width:760px){
+    .par{grid-template-columns:1fr}
+    .grid-cuotas{grid-template-columns:repeat(2,1fr)}
+    .cab{flex-direction:column;align-items:flex-start;gap:14px}
+    .cuerpo,.cab,.cliente{padding-left:18px;padding-right:18px}
+    .aviso,.pie{margin-left:18px;margin-right:18px}
+  }
+
+  /* ---------- impresión: una hoja A4 limpia ---------- */
+  @page{size:A4;margin:10mm}
+  @media print{
+    body{background:#fff;font-size:10.5px}
+    .barra,.ayuda{display:none !important}
+    .hoja{max-width:none;margin:0;box-shadow:none;padding-bottom:0}
+    .cab{padding:14px 18px}
+    .cab img{height:38px}
+    .cab .titulo{font-size:20px}
+    .cuerpo{padding:14px 18px 0}
+    .titulo{font-size:19px}
+    .subtitulo{margin-bottom:12px}
+    .par{gap:12px}
+    .caja h2{padding:8px 12px;font-size:12px}
+    .caja__in{padding:10px 12px}
+    .campo dd{font-size:12.5px}
+    .total b{font-size:18px}
+    .pago li{padding:6px 0;font-size:11px}
+    .pago b{font-size:12.5px}
+    .pago .destacado b{font-size:15px}
+    .plano,.cuotas{margin-top:10px}
+    .plano svg{height:auto;max-height:none}
+    .plano{break-inside:avoid}
+    .grid-cuotas{grid-template-columns:repeat(6,1fr);gap:0 10px}
+    .grid-cuotas div{font-size:8px;padding:1.5px 0}
+    .aviso{margin-top:7px}
+    .pie{margin-top:7px;padding-top:7px}
+    .cuotas{break-inside:avoid}
+  }
+</style>
+</head>
+<body class="tema-sc">
+
+<div class="barra" data-barra>
+  <div class="barra__in">
+    <label class="crece">Nombre del cliente
+      <input type="text" id="c-nombre" placeholder="Opcional" autocomplete="name">
+    </label>
+    <label>WhatsApp
+      <input type="tel" id="c-wa" placeholder="Opcional" autocomplete="tel">
+    </label>
+    <label>Cuota inicial
+      <select id="c-pct"></select>
+    </label>
+    <label>Plazo
+      <select id="c-meses"></select>
+    </label>
+    <button type="button" class="btn-pdf" id="c-pdf">Descargar PDF</button>
+    <a class="btn-volver" href="./#lotes">Volver al plano</a>
+  </div>
+</div>
+<p class="ayuda">Al tocar <b>Descargar PDF</b> se abre la ventana de impresión: elige <b>«Guardar como PDF»</b> como destino. En el celular está dentro de Compartir → Imprimir.</p>
+
+<main class="hoja" data-hoja hidden>
+  <header class="cab">
+    <div class="cab__t">
+      <span class="kicker">COTIZACIÓN COMERCIAL</span>
+      <span class="fecha" data-fecha></span>
+    </div>
+    <img src="assets/img/santa-clara-logo-blanco.png" alt="Santa Clara · Poblado Campestre">
+  </header>
+
+  <div class="cliente" data-cliente hidden>
+    <span><b>Cliente:</b> <span data-c-nombre></span></span>
+    <span data-c-wa-caja hidden><b>WhatsApp:</b> <span data-c-wa></span></span>
+  </div>
+
+  <div class="cuerpo">
+    <h1 class="titulo">Cotización de lote</h1>
+    <p class="subtitulo">Santa Clara · Poblado Campestre · Palmar de Varela, Atlántico</p>
+
+    <div class="par">
+      <section class="caja">
+        <h2>Datos del lote</h2>
+        <div class="caja__in">
+          <dl class="campos">
+            <div class="campo"><dt>Etapa</dt><dd data-d-etapa></dd></div>
+            <div class="campo"><dt>Manzana</dt><dd data-d-mz></dd></div>
+            <div class="campo"><dt>Lote</dt><dd data-d-lote></dd></div>
+            <div class="campo"><dt>Área</dt><dd data-d-area></dd></div>
+            <div class="campo"><dt>Valor por m²</dt><dd data-d-vm2></dd></div>
+            <div class="campo"><dt>Ubicación</dt><dd data-d-ubic></dd></div>
+            <div class="campo campo--ancho"><dt>Matrícula inmobiliaria</dt><dd data-d-mat></dd></div>
+          </dl>
+          <div class="total"><span>Valor total del lote</span><b data-d-precio></b></div>
+        </div>
+      </section>
+
+      <section class="caja">
+        <h2>Plan de pago estimado</h2>
+        <div class="caja__in">
+          <ul class="pago">
+            <li data-p-sep-caja><span>Separación</span><b data-p-sep></b></li>
+            <li><span>Cuota inicial · <span data-p-pct></span></span><b data-p-ini></b></li>
+            <li><span>Saldo a financiar · <span data-p-saldo-pct></span></span><b data-p-saldo></b></li>
+            <li class="destacado"><span><span data-p-meses></span> cuotas mensuales sin intereses</span><b data-p-cuota></b></li>
+            <li class="nota" data-p-rango></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <section class="caja plano">
+      <h2>Ubicación dentro del proyecto · Tu lote está aquí</h2>
+      <div data-plano></div>
+    </section>
+
+    <section class="caja cuotas">
+      <h2>Plan de pagos mes a mes</h2>
+      <div class="caja__in"><div class="grid-cuotas" data-cuotas></div></div>
+    </section>
+  </div>
+
+  <p class="aviso" data-aviso></p>
+  <div class="pie">
+    <span><b>Santa Clara · Poblado Campestre</b> · Palmar de Varela, Atlántico</span>
+    <span>WhatsApp <b data-pie-wa></b> · <b data-pie-web></b></span>
+  </div>
+</main>
+
+<div class="error" data-error hidden>
+  <h1>No encontramos ese lote</h1>
+  <p>Vuelve al plano y toca el lote que te interesa para generar su cotización.</p>
+  <p><a href="./#lotes">Ver el plano de lotes →</a></p>
+</div>
+
+<script src="data/config.js?v=11"></script>
+<script src="data/santa-clara.js?v=11"></script>
+<script src="api/inventario"></script>
+<script src="assets/js/comun.js?v=10"></script>
+<script src="assets/js/cotizacion.js?v=10"></script>
+</body>
+</html>

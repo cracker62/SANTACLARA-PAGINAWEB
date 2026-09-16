@@ -9,5 +9,22 @@
       "includeFiles": "data/**",
       "maxDuration": 60
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/santa-clara",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/santa-clara/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
 }

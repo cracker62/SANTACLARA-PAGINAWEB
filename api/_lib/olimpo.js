@@ -110,7 +110,7 @@ Desarrolladora de proyectos campestres en el Atlántico, Colombia. Ya vendió al
 - Dentro del proyecto está la Ciénaga El Pelú (entorno natural); no la presentes como un sitio vecino.
 - 2 etapas, ${sc.lots.filter((l) => l.estado !== "tecnico").length} lotes en el plano, ${disp.length} disponibles hoy.
 - Ubicaciones de los lotes disponibles: ${[...new Set(disp.map((l) => l.ubic))].join(", ")}.
-- Página del proyecto con el plano interactivo: santa-clara/ (cada lote se abre con santa-clara/?lote=CÓDIGO).
+- El plano interactivo está en la portada del sitio (cada lote se abre con /?lote=CÓDIGO). La página de la empresa está en /empresa.
 
 # Financiación
 Directa con Monte Olimpo, sin bancos y sin intereses. Cuota inicial de referencia ${F.default_down_payment}% (se puede simular con ${F.down_payment_options.join(", ")}%). Saldo = valor − cuota inicial; cuota mensual = saldo ÷ meses. Plazos de referencia según el área:

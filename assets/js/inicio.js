@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '<div class="reco__top"><b class="reco__id">' + l.id + '</b><span class="reco__cuota">' + MO.pesos(o.cuota) + "<small>/mes</small></span></div>" +
         '<p class="reco__meta">' + nf.format(l.area) + " m² · " + l.ubic + " · Etapa " + l.etapa + "</p>" +
         '<dl class="reco__dl"><dt>Valor</dt><dd>' + millones(l.precio) + "</dd><dt>Inicial " + st.pct + "%</dt><dd>" + MO.pesos(o.inicial) + "</dd><dt>Plazo</dt><dd>" + o.meses + " meses</dd></dl>" +
-        '<div class="reco__act"><a class="btn btn--sm btn--dark" href="santa-clara/?lote=' + encodeURIComponent(l.id) + '#lotes">Ver en el plano</a>' +
+        '<div class="reco__act"><a class="btn btn--sm btn--dark" href="../?lote=' + encodeURIComponent(l.id) + '#lotes">Ver en el plano</a>' +
         '<a class="btn btn--sm btn--wa" href="' + MO.waLink(msg) + '" target="_blank" rel="noopener">Separar</a></div></article>';
     }
     function render(desdeTexto) {
