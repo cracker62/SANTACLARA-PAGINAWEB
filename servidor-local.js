@@ -26,6 +26,13 @@ http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/api/inventario") {
     const { datos, fuente } = await inventarioVivo();
+    if (url.searchParams.get("formato") === "json") {
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      return res.end(JSON.stringify({
+        fuente: datos.fuente || { tipo: fuente },
+        lotes: datos.lots.map((l) => [l.id, l.estado, l.precio, l.vm2, l.ubic, l.mat, l.etapa])
+      }));
+    }
     res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8" });
     return res.end(fuente === "hoja" ? "window.SANTA_CLARA=" + JSON.stringify(datos) + ";" : "/* inventario del archivo */");
   }

@@ -77,9 +77,9 @@ export function aplicarHoja(sc, csv) {
 
 let cache = { t: 0, datos: null, fuente: "archivo" };
 
-/* Devuelve { datos, fuente }; guarda en memoria 60 s para no consultar la hoja en cada visita */
+/* Devuelve { datos, fuente }; guarda en memoria 20 s para no consultar la hoja en cada visita */
 export async function inventarioVivo() {
-  if (cache.datos && Date.now() - cache.t < 60000) return cache;
+  if (cache.datos && Date.now() - cache.t < 20000) return cache;
   const w = cargar("data/config.js");
   const base = cargar("data/santa-clara.js").SANTA_CLARA;
   const cfg = w.MO_CONFIG.inventario_vivo;
@@ -94,7 +94,7 @@ export async function inventarioVivo() {
     cache = { t: Date.now(), datos, fuente: "hoja" };
   } catch (e) {
     console.error("[inventario] uso el archivo:", e.message);
-    cache = { t: Date.now() - 45000, datos: cache.datos || base, fuente: cache.datos ? cache.fuente : "archivo" };
+    cache = { t: Date.now() - 10000, datos: cache.datos || base, fuente: cache.datos ? cache.fuente : "archivo" };
   }
   return cache;
 }

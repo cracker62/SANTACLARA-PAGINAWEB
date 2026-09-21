@@ -20,7 +20,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     document.documentElement.classList.add("js");
     stats(); comercial(); youtube(); carrusel(); mapaUbicacion(); visita();
-    buildMap(); filtros(); vistas(); lista(); amenidades();
+    buildMap(); filtros(); vistas(); lista(); amenidades(); inventarioEnVivo();
     window.seleccionarLote = function (id) {
       var l = byId[norm(id)]; if (!l) return;
       $("#lotes").scrollIntoView({ behavior: "smooth" });
@@ -29,6 +29,43 @@
     var q = new URLSearchParams(location.search).get("lote");
     if (q && byId[norm(q)]) { select(byId[norm(q)], { zoom: true }); setTimeout(function () { $("#lotes").scrollIntoView(); }, 60); }
   });
+
+  /* ------------------------------------------------------------------ inventario en vivo
+     Mientras la página está abierta, cada 30 s pregunta a la hoja de la empresa (vía api/inventario)
+     y repinta los lotes que cambiaron, los contadores, la lista y la ficha abierta, sin recargar. */
+  function inventarioEnVivo() {
+    if (!window.fetch || !/^https?:$/.test(location.protocol)) return;
+    var ocupado = false;
+    function revisar() {
+      if (document.hidden || ocupado) return;
+      ocupado = true;
+      fetch("api/inventario?formato=json", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.lotes) return;
+          var cambiados = {}, hay = false;
+          d.lotes.forEach(function (x) {
+            var l = byId[x[0]];
+            if (!l || (l.estado === x[1] && l.precio === x[2])) return;
+            var antes = l.estado;
+            l.estado = x[1]; l.precio = x[2]; l.vm2 = x[3]; l.ubic = x[4]; l.mat = x[5]; l.etapa = x[6];
+            var p = lotEls[l.id]; if (p) { p.classList.remove(antes); p.classList.add(l.estado); }
+            var t = numEls[l.id];
+            if (t) { t.classList.toggle("d", l.estado === "disponible"); t.classList.toggle("v", l.estado === "vendido"); }
+            cambiados[l.id] = true; hay = true;
+          });
+          if (!hay) return;
+          disponibles = lots.filter(function (l) { return l.estado === "disponible"; });
+          stats(); refresh(false);
+          if (current && cambiados[current.id]) renderFicha();
+          track("inventario_actualizado", { lotes: Object.keys(cambiados).join(",") });
+        })
+        .catch(function () {})
+        .then(function () { ocupado = false; });
+    }
+    setInterval(revisar, 30000);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) revisar(); });
+  }
 
   /* ------------------------------------------------------------------ datos generales */
   function stats() {
@@ -117,7 +154,7 @@
   }
 
   /* ------------------------------------------------------------------ mapa */
-  var svg, view, mapEl, vb, fitVb, lotEls = {}, tip, badges = [];
+  var svg, view, mapEl, vb, fitVb, lotEls = {}, numEls = {}, tip, badges = [];
   function el(tag, attrs, parent) {
     var e = document.createElementNS(NS, tag);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -185,6 +222,7 @@
       var t = el("text", { x: l.cx, y: l.cy, class: "lnum" + (l.estado === "vendido" ? " v" : l.estado === "disponible" ? " d" : ""),
         style: l.estado === "disponible" ? "animation-delay:" + (((2040 - l.cx) / 2040) * 3.2 + ((l.cy / 1930) * .8)).toFixed(2) + "s" : "" }, gNums);
       t.textContent = l.n;
+      numEls[l.id] = t;
       (mz[l.mz] = mz[l.mz] || []).push(l);
     });
     // insignias de manzana en la misma posición del círculo "Mz" del plano
