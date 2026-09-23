@@ -18,7 +18,7 @@
 
   --wrap:1200px;
   --pad:clamp(20px,4.5vw,56px);
-  --sec:clamp(84px,11vw,152px);
+  --sec:clamp(56px,7vw,100px);
   --ease:cubic-bezier(.2,.7,.2,1);
   --header-h:76px;
 }
@@ -483,7 +483,7 @@ body.olimpo-lock{overflow:hidden}
 .cv{display:inline-block;will-change:transform,opacity,filter}
 
 /* ---------- Manifiesto ---------- */
-.manifiesto{padding:clamp(96px,16vw,220px) 0;background:var(--obsidiana)}
+.manifiesto{padding:clamp(64px,9vw,120px) 0;background:var(--obsidiana)}
 .manifiesto .eyebrow{color:var(--oro);margin-bottom:28px}
 .manifiesto__txt{font-size:clamp(30px,5.4vw,72px);line-height:1.12;font-weight:700;letter-spacing:-.025em;max-width:22ch;color:#fff}
 .manifiesto__txt em{font-style:normal}
@@ -527,7 +527,7 @@ body.olimpo-lock{overflow:hidden}
 .tour360__pano{position:absolute;inset:-10% 0;z-index:-2;background:url("../video/dron-santa-clara-b-horizontal.jpg") 0 50%/auto 120% repeat-x;animation:pano 60s linear infinite;opacity:.55}
 .tour360::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(12,11,9,.92) 0%,rgba(12,11,9,.55) 60%,rgba(12,11,9,.85) 100%)}
 @keyframes pano{to{background-position:-2400px 50%}}
-.tour360__in{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:clamp(20px,4vw,48px);align-items:center;padding-top:clamp(64px,9vw,120px);padding-bottom:clamp(64px,9vw,120px)}
+.tour360__in{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:clamp(20px,4vw,48px);align-items:center;padding-top:clamp(44px,6vw,80px);padding-bottom:clamp(44px,6vw,80px)}
 @media (max-width:860px){.tour360__in{grid-template-columns:1fr;justify-items:start}}
 .tour360 .soon{position:static;display:inline-block;margin-bottom:14px}
 .tour360 h2{font-size:clamp(28px,3.6vw,48px);max-width:18ch}
