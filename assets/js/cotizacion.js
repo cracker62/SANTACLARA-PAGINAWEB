@@ -10,6 +10,7 @@
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var nf = new Intl.NumberFormat("es-CO");
+  var fmtPct = function (n) { return String(n).replace(".", ","); };
   var NS = "http://www.w3.org/2000/svg";
 
   var q = new URLSearchParams(location.search);
@@ -19,6 +20,7 @@
   if (!lote) { $("[data-error]").hidden = false; $("[data-barra]").hidden = true; return; }
   $("[data-hoja]").hidden = false;
 
+  var modo = (q.get("modo") || "").toLowerCase() === "contado" ? "contado" : "financiado";
   var regla = MO.reglaPlazo(lote.area);
   var pct = +q.get("pct");
   if (F.down_payment_options.indexOf(pct) === -1) pct = F.default_down_payment;
@@ -38,7 +40,7 @@
   inWa.value = q.get("wa") || "";
 
   function guardarUrl() {
-    var p = new URLSearchParams({ lote: lote.id, pct: pct, meses: meses });
+    var p = new URLSearchParams(modo === "contado" ? { lote: lote.id, modo: "contado" } : { lote: lote.id, pct: pct, meses: meses });
     if (inNombre.value.trim()) p.set("nombre", inNombre.value.trim());
     if (inWa.value.trim()) p.set("wa", inWa.value.trim());
     history.replaceState(null, "", "?" + p.toString());
@@ -63,6 +65,8 @@
 
   /* ---------- plan de pago, se recalcula al cambiar los controles ---------- */
   function pintarPago() {
+    if (modo === "contado") return pintarContado();
+    $("[data-hoja]").classList.remove("es-contado");
     var proy = MO.proyeccion(lote.precio, pct, meses);
     $("[data-p-pct]").textContent = pct + "%";
     $("[data-p-ini]").textContent = MO.pesos(proy.inicial);
@@ -88,6 +92,28 @@
       " cuotas mensuales sin intereses, redondeadas a cifras cerradas; la última cuota ajusta el total. " + F.aviso + estado + " Cotización generada el " + fecha + ".";
   }
 
+  /* Pago de contado: valor de lista, descuento, valor de contado, separación y saldo */
+  function pintarContado() {
+    var c = MO.contado(lote.precio);
+    $("[data-hoja]").classList.add("es-contado");
+    $("[data-p-titulo]").textContent = "Pago de contado";
+    $("[data-cuota-et]").textContent = "Valor de contado";
+    $("[data-p-cuota]").textContent = MO.pesos(c.total);
+    $("[data-cuota-nota]").textContent = c.pct ? fmtPct(c.pct) + "% de descuento sobre el valor de lista" : "Pago único";
+    $("[data-pago-filas]").innerHTML =
+      "<li><span>Valor de lista</span><b>" + MO.pesos(c.lista) + "</b></li>" +
+      (c.pct ? "<li><span>Descuento por pago de contado</span><b>− " + MO.pesos(c.descuento) + "</b></li>" : "") +
+      (c.separacion ? "<li><span>Separación para apartarlo</span><b>" + MO.pesos(c.separacion) + "</b></li>" : "") +
+      (c.separacion ? "<li><span>Saldo" + (c.dias ? " · hasta " + c.dias + " días" : "") + "</span><b>" + MO.pesos(c.saldo) + "</b></li>" : "") +
+      '<li class="tot"><span>Total a pagar</span><b>' + MO.pesos(c.total) + "</b></li>";
+    $("[data-p-rango]").textContent = c.dias
+      ? "Separas el lote y tienes hasta " + c.dias + " días para pagar el saldo. El descuento aplica pagando de contado."
+      : "El descuento aplica pagando de contado.";
+    $("[data-aviso]").textContent = "*Pago de contado con " + (c.pct ? fmtPct(c.pct) + "% de descuento sobre el valor de lista. " : "") +
+      F.aviso + (lote.estado === "disponible" ? "" : " Este lote aparece hoy como " + (lote.estado === "reservado" ? "reservado por otro cliente" : "vendido") + ": confirma con tu asesor.") +
+      " Cotización generada el " + fecha + ".";
+  }
+
   function pintarCliente() {
     var n = inNombre.value.trim(), w = inWa.value.trim();
     $("[data-cliente]").hidden = !n && !w;
@@ -96,6 +122,13 @@
     $("[data-c-wa]").textContent = w;
   }
 
+  /* Cambiar entre financiado y contado desde la misma hoja */
+  var selModo = $("#c-modo");
+  function verControles() {
+    $$("[data-solo-fin]").forEach(function (el) { el.hidden = modo === "contado"; });
+  }
+  selModo.value = modo; verControles();
+  selModo.addEventListener("change", function () { modo = selModo.value; verControles(); pintarPago(); guardarUrl(); });
   selPct.addEventListener("change", function () { pct = +selPct.value; pintarPago(); guardarUrl(); });
   selMeses.addEventListener("change", function () { meses = +selMeses.value; pintarPago(); guardarUrl(); });
   [inNombre, inWa].forEach(function (el) { el.addEventListener("input", function () { pintarCliente(); guardarUrl(); }); });
@@ -107,8 +140,20 @@
   /* Enviar la cotización al asesor: WhatsApp no recibe archivos desde la web, así que va el resumen
      completo más el enlace de esta misma cotización, que el asesor y el cliente conservan en el chat. */
   $("#c-wa-enviar").addEventListener("click", function () {
-    var proy = MO.proyeccion(lote.precio, pct, meses);
     var n = inNombre.value.trim();
+    if (modo === "contado") {
+      var c = MO.contado(lote.precio);
+      var msgC = (n ? "Hola, soy " + n + ". " : "Hola. ") + "Quiero comprar DE CONTADO el lote " + lote.id + " de Santa Clara – Poblado Campestre:\n\n" +
+        "Mz. " + lote.mz + " · Lote " + lote.n + " · " + nf.format(lote.area) + " m²\n" +
+        "Valor de lista: " + MO.pesos(c.lista) + "\n" +
+        (c.pct ? "Descuento por pago de contado (" + fmtPct(c.pct) + "%): − " + MO.pesos(c.descuento) + "\n" : "") +
+        "Valor de contado: " + MO.pesos(c.total) + "\n" +
+        (c.separacion ? "Separación: " + MO.pesos(c.separacion) + "\nSaldo" + (c.dias ? " (hasta " + c.dias + " días)" : "") + ": " + MO.pesos(c.saldo) + "\n" : "") +
+        "\nCotización completa: " + location.href + "\n\nQuiero confirmar disponibilidad y los pasos para separarlo.";
+      if (window.dataLayer) window.dataLayer.push({ event: "cotizacion_whatsapp", lote: lote.id, modo: "contado" });
+      return window.open(MO.waLink(msgC), "_blank", "noopener");
+    }
+    var proy = MO.proyeccion(lote.precio, pct, meses);
     var msg = (n ? "Hola, soy " + n + ". " : "Hola. ") + "Esta es la cotización del lote " + lote.id + " de Santa Clara – Poblado Campestre:\n\n" +
       "Mz. " + lote.mz + " · Lote " + lote.n + " · Etapa " + lote.etapa + "\n" +
       "Área: " + nf.format(lote.area) + " m²" + (lote.ubic ? " · " + lote.ubic : "") + "\n" +

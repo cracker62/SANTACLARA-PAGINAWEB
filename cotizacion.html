@@ -75,6 +75,12 @@
   .pago .tot b{color:var(--marino)}
   .rango{margin:10px 0 0;color:var(--tinta-2);font-size:11.5px;line-height:1.5}
 
+  /* Pago de contado: se cambian los bloques visibles */
+  [data-pago-filas]{display:none}
+  .es-contado [data-pago-filas]{display:block}
+  .es-contado [data-pago-fin],.es-contado .cuotas{display:none}
+  .es-contado .hero-cuota{background:#1F7A4D}
+
   /* la cuota mensual es lo que el cliente busca: va en verde y grande */
   .hero-cuota{background:var(--verde);color:#fff;padding:15px 16px;display:grid;gap:2px;border-bottom:1px solid var(--linea)}
   .hero-cuota .et{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82)}
@@ -154,10 +160,13 @@
     <label>WhatsApp
       <input type="tel" id="c-wa" placeholder="Opcional" autocomplete="tel">
     </label>
-    <label>Cuota inicial
+    <label>Forma de pago
+      <select id="c-modo"><option value="financiado">Financiado</option><option value="contado">De contado</option></select>
+    </label>
+    <label data-solo-fin>Cuota inicial
       <select id="c-pct"></select>
     </label>
-    <label>Plazo
+    <label data-solo-fin>Plazo
       <select id="c-meses"></select>
     </label>
     <button type="button" class="btn-wa" id="c-wa-enviar">Enviar al asesor por WhatsApp</button>
@@ -203,20 +212,21 @@
       </section>
 
       <section class="caja">
-        <h2>Plan de pago</h2>
+        <h2 data-p-titulo>Plan de pago</h2>
         <div class="hero-cuota">
-          <span class="et">Tu cuota mensual</span>
+          <span class="et" data-cuota-et>Tu cuota mensual</span>
           <b data-p-cuota></b>
-          <span class="nota"><span data-p-meses></span> cuotas fijas · sin intereses · sin bancos</span>
+          <span class="nota" data-cuota-nota><span data-p-meses></span> cuotas fijas · sin intereses · sin bancos</span>
         </div>
         <div class="caja__in">
-          <ul class="pago">
+          <ul class="pago" data-pago-fin>
             <li data-p-sep-caja><span>Separación para apartarlo</span><b data-p-sep></b></li>
             <li><span>Cuota inicial · <span data-p-pct></span></span><b data-p-ini></b></li>
             <li><span>Saldo a financiar · <span data-p-saldo-pct></span></span><b data-p-saldo></b></li>
             <li><span>Última cuota · mes <span data-p-ultima-mes></span></span><b data-p-ultima></b></li>
             <li class="tot"><span>Valor total del lote</span><b data-p-total></b></li>
           </ul>
+          <ul class="pago" data-pago-filas></ul>
           <p class="rango" data-p-rango></p>
         </div>
       </section>
@@ -246,11 +256,11 @@
   <p><a href="./#lotes">Ver el plano de lotes →</a></p>
 </div>
 
-<script src="data/config.js?v=11"></script>
+<script src="data/config.js?v=12"></script>
 <script src="data/santa-clara.js?v=11"></script>
 <script src="api/inventario"></script>
-<script src="assets/js/comun.js?v=11"></script>
+<script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=14"></script>
+<script src="assets/js/cotizacion.js?v=15"></script>
 </body>
 </html>

@@ -498,3 +498,14 @@
 
 /* Nota de cierre del plan de pagos (cuotas cerradas y última cuota) */
 .ficha .cierre-nota{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--sc-tinta-2)}
+
+/* Forma de pago en la ficha del lote: Financiado / De contado */
+.ficha .modos{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0 0;background:var(--sc-arena-2);padding:4px;border-radius:999px}
+.ficha .modos button{font:inherit;font-size:13.5px;font-weight:600;color:var(--sc-tinta-2);background:transparent;border:0;border-radius:999px;padding:9px 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.ficha .modos button i{font-style:normal;font-size:11.5px;font-weight:700;color:#1F7A4D;background:#E4F0DC;border-radius:999px;padding:2px 7px}
+.ficha .modos button[aria-selected="true"]{background:var(--sc-blanco);color:var(--sc-marino);box-shadow:0 1px 4px rgba(27,42,69,.14)}
+.ficha .modos button:hover{color:var(--sc-marino)}
+.ficha .contadobox{margin-top:14px;border:1px solid var(--sc-linea);border-radius:4px;padding:14px;background:var(--sc-blanco)}
+.ficha .contadobox h4{margin:0 0 10px}
+.ficha .cuota--contado{background:#E4F0DC;border-color:#BFD9AE}
+.ficha .cuota--contado b{color:#1F5E2E}

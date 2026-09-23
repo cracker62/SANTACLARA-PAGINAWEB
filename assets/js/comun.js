@@ -47,6 +47,18 @@
     return { valor: valor, inicial: inicial, saldo: saldo, cuota: cuota, ultima: ultima, meses: meses, filas: filas };
   }
 
+  /* Pago de contado: valor de lista menos el descuento, separación y saldo con su plazo.
+     Los valores salen de data/config.js → financiacion.contado. */
+  function contado(valor) {
+    var c = CFG.financiacion.contado || {};
+    var pct = +c.descuento_pct || 0;
+    var descuento = Math.round(valor * pct / 100);
+    var total = valor - descuento;
+    var sep = CFG.financiacion.reservation_amount || 0;
+    return { lista: valor, pct: pct, descuento: descuento, total: total, separacion: sep,
+             saldo: Math.max(0, total - sep), dias: c.plazo_dias || null };
+  }
+
   /* Cuota de un lote con el plazo máximo de referencia para su área */
   function cuotaLote(l, pct) {
     var r = reglaPlazo(l.area), p = proyeccion(l.precio, pct, r.max_months);
@@ -162,6 +174,6 @@
     }).join("");
   }
 
-  window.MO = { pesos: pesos, m2: m2, waLink: waLink, reglaPlazo: reglaPlazo, proyeccion: proyeccion, cuotaLote: cuotaLote, recomendar: recomendar, curvas: curvas, faq: faq, cfg: CFG };
+  window.MO = { pesos: pesos, m2: m2, waLink: waLink, reglaPlazo: reglaPlazo, proyeccion: proyeccion, contado: contado, cuotaLote: cuotaLote, recomendar: recomendar, curvas: curvas, faq: faq, cfg: CFG };
   document.addEventListener("DOMContentLoaded", navegacion);
 })();

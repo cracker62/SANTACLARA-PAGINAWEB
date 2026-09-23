@@ -23,6 +23,8 @@ window.MO_CONFIG = {
     // Las cuotas mensuales se redondean HACIA ARRIBA a este múltiplo para que sean cifras cerradas
     // (ej. 1.690.000 → 1.700.000). La última cuota se ajusta para que la suma dé exactamente el saldo.
     redondeo_cuota: 50000,
+    // Pago de contado: descuento sobre el valor de lista y plazo para pagar el saldo.
+    contado: { descuento_pct: 2.5, plazo_dias: 30 },
     // Plazos de referencia según área del lote (m²). Se negocian con el asesor comercial.
     financing_rules: [
       { hasta_m2: 499,  min_months: 18, max_months: 24 },

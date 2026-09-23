@@ -72,6 +72,16 @@
     return "Hola, me interesa el lote " + l.id + " de Santa Clara (Mz. " + l.mz + " · Lote " + l.n + ").\n\nÁrea: " + nf.format(l.area) + " m²\nValor: " + pesos(l.precio) +
       "\nCuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "\nCuota mensual a " + meses + " meses: " + pesos(cuota(l.precio, pct, meses));
   }
+  /* Pago de contado de un lote: mismas cifras que la ficha del plano */
+  function htmlContado(l) {
+    var c = MO.contado(l.precio), pctTxt = String(c.pct).replace(".", ",");
+    return "Pagando <b>de contado</b> el lote " + linkLote(l) + ":<ul><li>Valor de lista: " + pesos(c.lista) + "</li>" +
+      (c.pct ? "<li>Descuento " + pctTxt + "%: <b>− " + pesos(c.descuento) + "</b></li>" : "") +
+      "<li>Valor de contado: <b>" + pesos(c.total) + "</b></li></ul>" +
+      (c.separacion ? "Separas con " + pesos(c.separacion) + (c.dias ? " y tienes hasta <b>" + c.dias + " días</b> para pagar el saldo. " : ". ") : "") +
+      "<b>¿Te lo aparto a tu nombre?</b>";
+  }
+
   function filaLote(l) {
     var r = regla(l.area);
     return "<li>" + linkLote(l) + " · " + nf.format(l.area) + " m² · " + (l.ubic || "") + " · <b>" + millones(l.precio) + "</b> · desde " + pesos(cuota(l.precio, F.default_down_payment, r.max_months)) + "/mes</li>";
@@ -91,6 +101,8 @@
         return W("El lote <b>" + l.id + "</b> ya está <b>" + (l.estado === "reservado" ? "reservado por otro cliente" : "vendido") + "</b>. Estos disponibles se le parecen:<ul>" + sim.map(filaLote).join("") + "</ul>", ["Hablar con un asesor"]);
       }
       if (l.estado !== "disponible") return W("El lote <b>" + l.id + "</b> aparece como <b>" + (l.estado === "tecnico" ? "zona técnica" : "próximamente") + "</b> y no tiene precio publicado. Tu asesor te puede dar novedades.", ["Hablar con un asesor"]);
+      if (has(t, ["contado", "de una vez", "sin financiar", "pago total", "todo de una"]))
+        return W(htmlContado(l), ["Agendar visita", "Hablar con un asesor"]);
       var r = regla(l.area), meses = e.meses ? Math.min(Math.max(e.meses, r.min_months), r.max_months) : r.max_months, pct = e.pct && F.down_payment_options.indexOf(e.pct) !== -1 ? e.pct : F.default_down_payment;
       var ajuste = e.meses && meses !== e.meses ? " (para este lote el plazo de referencia es de " + r.min_months + " a " + r.max_months + " meses)" : "";
       return W("¡Buena elección! <b>Mz. " + l.mz + " · Lote " + l.n + "</b><ul><li>Área: " + nf.format(l.area) + " m²</li><li>Valor: <b>" + pesos(l.precio) + "</b></li><li>Ubicación: " + l.ubic + " · Etapa " + l.etapa + "</li><li>Cuota inicial " + pct + "%: " + pesos(l.precio * pct / 100) + "</li><li>Cuota mensual a " + plan(l.precio, pct, meses).meses + " meses: <b>" + pesos(plan(l.precio, pct, meses).cuota) + "</b> (última: " + pesos(plan(l.precio, pct, meses).ultima) + ")" + ajuste + "</li></ul>" +
@@ -105,6 +117,15 @@
       return W("¡Hola! Soy <b>Olimpo</b>. Puedo decirte qué lotes hay disponibles, cuánto cuestan, simular tu cuota o explicarte la financiación. ¿Qué te gustaría saber?", ["Lotes más económicos", "¿Tiene intereses?", "¿Dónde queda?"]);
     if (has(t, ["gracias", "muy amable", "perfecto", "listo"]) && t.split(" ").length <= 5)
       return W("¡Con gusto! Cuando quieras dar el siguiente paso, un asesor te acompaña por WhatsApp.", ["Hablar con un asesor"]);
+
+    // pago de contado
+    if (has(t, ["contado", "de una vez", "pago total", "todo de una", "sin financiar", "descuento"])) {
+      var C = F.contado || {};
+      if (e.lote && e.lote.estado === "disponible") return W(htmlContado(e.lote), ["Agendar visita", "Hablar con un asesor"]);
+      return W("Sí, puedes pagar <b>de contado</b>" + (C.descuento_pct ? " con un <b>" + String(C.descuento_pct).replace(".", ",") + "% de descuento</b> sobre el valor de lista" : "") + ". " +
+        (C.plazo_dias ? "Separas el lote y tienes hasta <b>" + C.plazo_dias + " días</b> para pagar el saldo. " : "") +
+        "Dime el código del lote que te gusta (ej. G-12) y te hago la cuenta exacta.", ["Lotes más económicos", "Hablar con un asesor"]);
+    }
 
     /* ---------- objeciones: se reconocen, se responden con un dato real y se cierra con el paso fácil ---------- */
     if (has(t, ["caro", "costoso", "muy alto", "no me alcanza", "no puedo pagar", "esta duro", "rebaja", "descuento"])) {

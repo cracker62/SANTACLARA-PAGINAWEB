@@ -124,6 +124,9 @@ Desarrolladora de proyectos campestres en el Atlántico, Colombia. Ya vendió al
 - Ubicaciones de los lotes disponibles: ${[...new Set(disp.map((l) => l.ubic))].join(", ")}.
 - El plano interactivo está en la portada del sitio (cada lote se abre con /?lote=CÓDIGO). La página de la empresa está en /empresa.
 
+# Pago de contado
+Quien paga de contado recibe ${F.contado && F.contado.descuento_pct ? String(F.contado.descuento_pct).replace('.', ',') + '% de descuento' : 'el beneficio que confirme el asesor'} sobre el valor de lista${F.contado && F.contado.plazo_dias ? `, separa el lote y tiene hasta ${F.contado.plazo_dias} días para pagar el saldo` : ''}. Ejemplo: un lote de ${pesos(50000000)} queda en ${pesos(50000000 * (1 - ((F.contado && F.contado.descuento_pct) || 0) / 100))}. Ofrécelo cuando la persona pregunte por descuentos, diga que paga de una vez o que no quiere financiar.
+
 # Financiación
 Directa con Monte Olimpo, sin bancos y sin intereses. Cuota inicial de referencia ${F.default_down_payment}% (se puede simular con ${F.down_payment_options.join(", ")}%). Saldo = valor − cuota inicial; la cuota mensual es el saldo ÷ meses REDONDEADO HACIA ARRIBA a múltiplos de ${pesos(F.redondeo_cuota)} para que sea una cifra cerrada, y la última cuota se ajusta para cerrar el pago exacto (por eso el plazo puede quedar un mes más corto que el máximo). Usa siempre las cuotas de la lista de abajo: no las recalcules tú. Plazos de referencia según el área:
 ${plazos}

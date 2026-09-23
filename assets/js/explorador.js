@@ -7,6 +7,7 @@
   var track = function (ev, data) { if (window.dataLayer) window.dataLayer.push(Object.assign({ event: ev }, data || {})); };
   var isMobile = function () { return window.matchMedia("(max-width: 1100px)").matches; };
   var fmtN = new Intl.NumberFormat("es-CO");
+  var fmtPct = function (n) { return String(n).replace(".", ","); };
 
   var lots = SC.lots, byId = {};
   lots.forEach(function (l) { byId[l.id] = l; });
@@ -545,7 +546,7 @@
   }
 
   function fichaDisponible(l, close) {
-    var r = MO.reglaPlazo(l.area), opts = "";
+    var r = MO.reglaPlazo(l.area), opts = "", ct = MO.contado(l.precio);
     for (var m = r.min_months; m <= r.max_months; m++) opts += '<option value="' + m + '"' + (m === sim.meses ? " selected" : "") + ">" + m + " meses</option>";
     var pcts = F.down_payment_options.map(function (p) { return '<button type="button" class="chip" data-pct="' + p + '" aria-pressed="' + (p === sim.pct) + '">' + p + "%</button>"; }).join("");
     return '<div class="ficha">' +
@@ -553,6 +554,21 @@
       '<div class="pills"><span class="pill ok">Disponible</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + (l.ubic ? '<span class="pill">' + l.ubic + "</span>" : "") + "</div>" +
       '<div class="price"><span>Valor</span><b>' + MO.pesos(l.precio) + "</b></div>" +
       datos(l) +
+      '<div class="modos" role="tablist" data-modos>' +
+        '<button type="button" role="tab" data-modo="financiado" aria-selected="true">Financiado</button>' +
+        '<button type="button" role="tab" data-modo="contado" aria-selected="false">De contado' + (ct.pct ? ' <i>−' + fmtPct(ct.pct) + '%</i>' : "") + "</button>" +
+      "</div>" +
+      '<div class="contadobox" data-contado hidden>' +
+        "<h4>Pago de contado" + (ct.pct ? " · " + fmtPct(ct.pct) + "% de descuento" : "") + "</h4>" +
+        '<div class="cuota cuota--contado"><span>Valor de contado</span><b>' + MO.pesos(ct.total) + "</b></div>" +
+        '<dl class="kv">' +
+          "<dt>Valor de lista</dt><dd>" + MO.pesos(ct.lista) + "</dd>" +
+          (ct.pct ? "<dt>Descuento por pago de contado</dt><dd>− " + MO.pesos(ct.descuento) + "</dd>" : "") +
+          (ct.separacion ? "<dt>Separación</dt><dd>" + MO.pesos(ct.separacion) + "</dd><dt>Saldo" + (ct.dias ? " (hasta " + ct.dias + " días)" : "") + "</dt><dd>" + MO.pesos(ct.saldo) + "</dd>" : "") +
+        "</dl>" +
+        '<p class="cierre-nota">' + (ct.pct ? "Te ahorras <b>" + MO.pesos(ct.descuento) + "</b> frente al valor de lista. " : "") +
+          (ct.dias ? "Separas el lote y tienes hasta <b>" + ct.dias + " días</b> para pagar el saldo." : "") + "</p>" +
+      "</div>" +
       '<div class="simbox" data-sim>' +
         "<h4>Proyección de pagos · sin intereses</h4>" +
         '<div class="simrow"><span>Cuota inicial</span><div class="seg" style="gap:6px">' + pcts + "</div></div>" +
@@ -566,6 +582,7 @@
       '<div class="actions">' +
         '<a class="btn btn--sol" data-act="quiero">Quiero este lote</a>' +
         '<a class="btn btn--wa" data-act="proyeccion">Enviar proyección por WhatsApp</a>' +
+        '<a class="btn btn--wa" data-act="contado" hidden>Quiero pagar de contado</a>' +
         '<a class="btn btn--sol" data-cotizacion>Enviar cotización</a>' +
         '<div class="row2"><a class="btn btn--line" data-act="asesor">Hablar con un asesor</a><a class="btn btn--line" data-act="visita">Agendar visita</a></div>' +
         '<button type="button" class="share" data-share>Compartir este lote</button>' +
@@ -604,7 +621,23 @@
     var close = $("[data-close]", box); if (close) close.addEventListener("click", closeFicha);
     $$(".similar button[data-id]", box).forEach(function (b) { b.addEventListener("click", function () { select(byId[b.dataset.id], { zoom: true }); }); });
     var simEl = $("[data-sim]", box);
-    var proy = null;
+    var proy = null, modo = "financiado";
+    var modosEl = $("[data-modos]", box), contadoEl = $("[data-contado]", box);
+    /* Cambio entre "Financiado" y "De contado": muestra el bloque que toca y adapta los botones */
+    function verModo(m) {
+      modo = m;
+      if (simEl) simEl.hidden = m === "contado";
+      if (contadoEl) contadoEl.hidden = m !== "contado";
+      $$("[data-modo]", modosEl).forEach(function (b) { b.setAttribute("aria-selected", b.dataset.modo === m); });
+      var pr = $('[data-act="proyeccion"]', box), co = $('[data-act="contado"]', box);
+      if (pr) pr.hidden = m === "contado";
+      if (co) co.hidden = m !== "contado";
+      links();
+      track("forma_de_pago", { lote: l.id, modo: m });
+    }
+    if (modosEl) modosEl.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-modo]"); if (b) verModo(b.dataset.modo);
+    });
     function calc() {
       proy = MO.proyeccion(l.precio, sim.pct, sim.meses);
       $("[data-o-pct]", box).textContent = sim.pct + "%";
@@ -622,9 +655,18 @@
         "\nCuota inicial simulada: " + sim.pct + "% (" + MO.pesos(proy.inicial) + ")" +
         "\nPlazo: " + sim.meses + " meses\nCuota mensual aproximada: " + MO.pesos(proy.cuota);
     }
+    /* Resumen del pago de contado para el mensaje de WhatsApp */
+    function resumenContado() {
+      var c = MO.contado(l.precio);
+      return "Área: " + fmtN.format(l.area) + " m²\nValor de lista: " + MO.pesos(c.lista) +
+        (c.pct ? "\nDescuento por pago de contado (" + fmtPct(c.pct) + "%): − " + MO.pesos(c.descuento) : "") +
+        "\nValor de contado: " + MO.pesos(c.total) +
+        (c.separacion ? "\nSeparación: " + MO.pesos(c.separacion) + "\nSaldo" + (c.dias ? " (hasta " + c.dias + " días)" : "") + ": " + MO.pesos(c.saldo) : "");
+    }
     function links() {
       var msgs = {
-        quiero: "Hola, quiero el lote " + l.id + " de Santa Clara (" + nombreLote(l) + ").\n\n" + resumen() + "\n\n¿Cómo puedo separarlo?",
+        contado: "Hola, quiero comprar de contado el lote " + l.id + " de Santa Clara (" + nombreLote(l) + ").\n\n" + resumenContado() + "\n\nQuiero confirmar disponibilidad y los pasos para separarlo.",
+        quiero: "Hola, quiero el lote " + l.id + " de Santa Clara (" + nombreLote(l) + ").\n\n" + (modo === "contado" ? resumenContado() : resumen()) + "\n\n¿Cómo puedo separarlo?",
         proyeccion: "Hola, estoy interesado en el lote " + l.id + " de Santa Clara.\n\n" + resumen() + "\n\nQuiero confirmar disponibilidad y condiciones de financiación.",
         asesor: "Hola, tengo preguntas sobre el lote " + l.id + " de Santa Clara (" + fmtN.format(l.area || 0) + " m²).",
         visita: "Hola, quiero agendar una visita a Santa Clara para conocer el lote " + l.id + ".",
@@ -634,7 +676,7 @@
       var cot = $("[data-cotizacion]", box);
       if (cot) {
         // La cotización se abre con la simulación que la persona tiene en pantalla
-        cot.href = "cotizacion.html?lote=" + encodeURIComponent(l.id) + "&pct=" + sim.pct + "&meses=" + sim.meses;
+        cot.href = "cotizacion.html?lote=" + encodeURIComponent(l.id) + (modo === "contado" ? "&modo=contado" : "&pct=" + sim.pct + "&meses=" + sim.meses);
         cot.target = "_blank"; cot.rel = "noopener";
         cot.onclick = function () { track("cotizacion_abrir", { lote: l.id, meses: sim.meses, inicial: sim.pct }); };
       }
