@@ -580,8 +580,9 @@
         '<details class="proj-table"><summary>Ver proyección mes a mes</summary><div class="tbl-wrap"><table><thead><tr><th>Mes</th><th>Cuota</th><th>Saldo pendiente</th></tr></thead><tbody data-o-tabla></tbody></table></div></details>' +
       "</div>" +
       '<div class="actions">' +
-        '<a class="btn btn--sol btn--grande" data-cotizacion>Cotizar este lote</a>' +
-        '<p class="paso">Ahí pones tu nombre y tu WhatsApp, y le mandas la cotización en PDF al asesor.</p>' +
+        '<a class="btn btn--wa btn--grande" data-act="quiero">Separa tu lote · Enviar cotización por WhatsApp</a>' +
+        '<a class="btn btn--sol" data-cotizacion>Cotización personalizada en PDF</a>' +
+        '<p class="paso">La personalizada lleva tu nombre y se la mandas al asesor en PDF.</p>' +
         '<div class="row2"><a class="btn btn--line" data-act="visita">Agendar visita</a><button type="button" class="btn btn--line" data-share>Compartir</button></div>' +
       "</div>" +
       '<p class="aviso">' + F.aviso + " El plazo final se acuerda con tu asesor.</p>" +
