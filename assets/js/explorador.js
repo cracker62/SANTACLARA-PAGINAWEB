@@ -580,11 +580,18 @@
         '<details class="proj-table"><summary>Ver proyección mes a mes</summary><div class="tbl-wrap"><table><thead><tr><th>Mes</th><th>Cuota</th><th>Saldo pendiente</th></tr></thead><tbody data-o-tabla></tbody></table></div></details>' +
       "</div>" +
       '<div class="actions">' +
-        '<a class="btn btn--sol" data-act="quiero">Quiero este lote</a>' +
-        '<a class="btn btn--wa" data-act="proyeccion">Enviar proyección por WhatsApp</a>' +
-        '<a class="btn btn--wa" data-act="contado" hidden>Quiero pagar de contado</a>' +
-        '<a class="btn btn--sol" data-cotizacion>Enviar cotización</a>' +
-        '<div class="row2"><a class="btn btn--line" data-act="asesor">Hablar con un asesor</a><a class="btn btn--line" data-act="visita">Agendar visita</a></div>' +
+        '<button type="button" class="btn btn--sol btn--grande" data-pedir>Quiero este lote</button>' +
+        '<form class="lead" data-lead hidden novalidate>' +
+          "<h4>Tus datos para separarlo</h4>" +
+          '<label>Nombre completo<input type="text" name="nombre" autocomplete="name" required></label>' +
+          '<label>Cédula<input type="text" name="cedula" inputmode="numeric" autocomplete="off" required></label>' +
+          '<label>WhatsApp<input type="tel" name="tel" inputmode="tel" autocomplete="tel" required></label>' +
+          '<label class="check"><input type="checkbox" name="acepto" required><span>Autorizo el tratamiento de mis datos para que un asesor me contacte. <a href="politica-de-datos.html" target="_blank" rel="noopener">Ver política</a></span></label>' +
+          '<p class="err" data-lead-err hidden></p>' +
+          '<button type="submit" class="btn btn--wa btn--grande">Enviar al asesor por WhatsApp</button>' +
+          '<button type="button" class="share" data-lead-cerrar>Ahora no</button>' +
+        "</form>" +
+        '<div class="row2"><a class="btn btn--line" data-cotizacion>Hacer cotización</a><a class="btn btn--line" data-act="visita">Agendar visita</a></div>' +
         '<button type="button" class="share" data-share>Compartir este lote</button>' +
       "</div>" +
       '<p class="aviso">' + F.aviso + " El plazo final se acuerda con tu asesor.</p>" +
@@ -653,7 +660,8 @@
       if (!proy) return "Área: " + fmtN.format(l.area || 0) + " m²";
       return "Área: " + fmtN.format(l.area) + " m²\nValor: " + MO.pesos(l.precio) +
         "\nCuota inicial simulada: " + sim.pct + "% (" + MO.pesos(proy.inicial) + ")" +
-        "\nPlazo: " + sim.meses + " meses\nCuota mensual aproximada: " + MO.pesos(proy.cuota);
+        "\nPlazo: " + proy.meses + " meses\nCuota mensual: " + MO.pesos(proy.cuota) +
+        "\nÚltima cuota (mes " + proy.meses + "): " + MO.pesos(proy.ultima);
     }
     /* Resumen del pago de contado para el mensaje de WhatsApp */
     function resumenContado() {
@@ -695,6 +703,39 @@
       $("[data-meses]", simEl).addEventListener("change", function (e) { sim.meses = +e.target.value; calc(); track("financing_simulation", { lote: l.id, inicial: sim.pct, meses: sim.meses }); });
       calc();
     } else links();
+    /* Un solo camino: "Quiero este lote" pide los datos y se los manda al asesor con la cotización */
+    var pedir = $("[data-pedir]", box), lead = $("[data-lead]", box);
+    if (pedir && lead) {
+      pedir.addEventListener("click", function () {
+        pedir.hidden = true; lead.hidden = false;
+        lead.querySelector("input").focus({ preventScroll: true });
+        track("lead_abrir", { lote: l.id, modo: modo });
+      });
+      $("[data-lead-cerrar]", lead).addEventListener("click", function () { lead.hidden = true; pedir.hidden = false; });
+      lead.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var err = $("[data-lead-err]", lead);
+        var nombre = lead.nombre.value.trim(), cedula = lead.cedula.value.replace(/[^0-9]/g, ""), tel = lead.tel.value.replace(/[^0-9+]/g, "");
+        function fallo(m, campo) { err.hidden = false; err.textContent = m; if (campo) campo.focus(); }
+        if (nombre.length < 3) return fallo("Escribe tu nombre completo.", lead.nombre);
+        if (cedula.length < 5) return fallo("Escribe tu número de cédula.", lead.cedula);
+        if (tel.replace(/[^0-9]/g, "").length < 7) return fallo("Escribe tu número de WhatsApp.", lead.tel);
+        if (!lead.acepto.checked) return fallo("Para enviarlo, autoriza el tratamiento de tus datos.");
+        err.hidden = true;
+        var url = location.origin + location.pathname.replace(/[^/]*$/, "") + "cotizacion.html?lote=" + encodeURIComponent(l.id) +
+          (modo === "contado" ? "&modo=contado" : "&pct=" + sim.pct + "&meses=" + sim.meses) + "&nombre=" + encodeURIComponent(nombre);
+        var msg = "Hola, soy " + nombre + " y quiero el lote " + l.id + " de Santa Clara (" + nombreLote(l) + ").\n\n" +
+          "Cédula: " + cedula + "\n" +
+          "WhatsApp: " + tel + "\n\n" +
+          (modo === "contado" ? "PAGO DE CONTADO\n" + resumenContado() : "FINANCIADO\n" + resumen()) + "\n\n" +
+          "Mi cotización: " + url + "\n\n" +
+          "Quiero que me confirmen disponibilidad y los pasos para separarlo.";
+        track("lead_enviado", { lote: l.id, modo: modo, meses: sim.meses, inicial: sim.pct });
+        window.open(MO.waLink(msg), "_blank", "noopener");
+        lead.innerHTML = '<h4>¡Listo!</h4><p style="font-size:14px;color:var(--sc-tinta-2);margin:0">Se abrió WhatsApp con tu cotización del lote <b>' + l.id + '</b>. Si no se abrió, escríbenos al ' + CFG.whatsapp.visible + '.</p>';
+      });
+    }
+
     var share = $("[data-share]", box);
     if (share) share.addEventListener("click", function () {
       var url = location.origin + location.pathname + "?lote=" + encodeURIComponent(l.id) + "#lotes";
