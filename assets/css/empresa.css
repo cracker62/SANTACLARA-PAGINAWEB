@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MONTE OLIMPO · versión de trabajo de la página de la empresa (empresa/nueva.html)
+   MONTE OLIMPO · página de la empresa (empresa/index.html)
    Parte de la base anterior y solo ajusta: títulos sin raya, textos más juntos,
    botones de cliente visibles, Santa Clara como quinto proyecto y el camino del cliente nuevo.
    ========================================================================== */
@@ -7,16 +7,36 @@
 /* Lo que aún no está listo (portal, testimonios) se oculta con el atributo hidden */
 .mo-v2 [hidden]{display:none!important}
 
-/* Títulos pequeños sin la raya delante: más sobrio */
+/* ---------- Una sola estructura para todas las secciones ----------
+   Igual que la portada: todo alineado a la izquierda.
+   Etiqueta dorada pequeña → título grande (con las palabras doradas que brillan) → texto corto.
+   Dentro de las tarjetas (simulador, asistente) la etiqueta queda pequeña. */
 .mo-v2 .eyebrow::before{display:none}
-.mo-v2 .eyebrow{letter-spacing:.14em;font-size:clamp(17px,1.7vw,23px);font-weight:700}
+.mo-v2 .eyebrow{font-size:13px;font-weight:700;letter-spacing:.18em}
 
-/* Título y párrafo juntos, uno debajo del otro */
-.mo-v2 .sec-head{grid-template-columns:minmax(0,1fr);gap:14px;align-items:start;margin-bottom:clamp(30px,4vw,48px);max-width:780px}
-.mo-v2 .sec-head .eyebrow{grid-column:auto}
-.mo-v2 .sec-head p{max-width:62ch}
-.mo-v2 .fin__head{margin-bottom:clamp(28px,4vw,44px)}
-.mo-v2 .manifiesto{padding:clamp(56px,7vw,96px) 0}
+.mo-v2 .sec-head,
+.mo-v2 .camino__head,
+.mo-v2 .fin__head,
+.mo-v2 .faq__head{display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;align-items:start;text-align:left;gap:14px;max-width:900px;margin-inline:0;margin-bottom:clamp(36px,5vw,56px)}
+.mo-v2 .manifiesto .wrap{display:grid;justify-items:start;text-align:left;gap:14px}
+.mo-v2 .sec-head > .eyebrow,
+.mo-v2 .camino__head > .eyebrow,
+.mo-v2 .fin__head > .eyebrow,
+.mo-v2 .faq__head > .eyebrow,
+.mo-v2 .manifiesto .wrap > .eyebrow{grid-column:auto;margin:0;font-size:clamp(16px,1.5vw,20px);letter-spacing:.2em;color:var(--oro);text-shadow:0 0 18px rgba(232,199,122,.35)}
+.mo-v2 .fin__head > .eyebrow{color:var(--bronce);text-shadow:none}
+.mo-v2 .sec-head p,.mo-v2 .camino__head p{max-width:60ch;margin:0}
+.mo-v2 .faq__head h2{margin:0}
+
+/* Títulos: mismo tamaño en todas las secciones y las palabras doradas con un brillo suave */
+.mo-v2 :is(.sec-head,.camino__head,.faq__head) h2,
+.mo-v2 .fin__head h2{font-size:clamp(32px,4.2vw,56px);line-height:1.08;max-width:22ch}
+.mo-v2 :is(.sec-head,.camino__head,.faq__head) h2 em,
+.mo-v2 .manifiesto__txt em{text-shadow:0 0 28px rgba(232,199,122,.35)}
+
+/* Nuestra promesa: misma etiqueta que las demás y la frase como título */
+.mo-v2 .manifiesto{padding:clamp(64px,8vw,110px) 0}
+.mo-v2 .manifiesto__txt{max-width:26ch;margin:0;font-size:clamp(32px,4.2vw,56px);line-height:1.1}
 
 /* "Ya soy cliente": dorado de contorno, bien visible sobre el fondo oscuro */
 .btn--cliente{--b-bg:rgba(201,160,82,.14);--b-fg:var(--oro-luz);--b-bd:var(--oro)}
@@ -88,8 +108,3 @@
 .felices__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(24px,3vw,36px)}
 @media (max-width:860px){.felices__grid{grid-template-columns:1fr 1fr}}
 @media (max-width:540px){.felices__grid{grid-template-columns:1fr}.testimonio__media{aspect-ratio:16/10}}
-
-/* Nuestra promesa: centrada */
-.mo-v2 .manifiesto .wrap{text-align:center;display:grid;justify-items:center;gap:18px}
-.mo-v2 .manifiesto .eyebrow{font-size:clamp(34px,4.4vw,60px);font-weight:700;letter-spacing:.02em;text-transform:none;line-height:1.05;margin-bottom:6px;color:var(--oro-luz)}
-.mo-v2 .manifiesto__txt{max-width:26ch;margin-inline:auto;font-size:clamp(24px,3.4vw,46px);line-height:1.2}
