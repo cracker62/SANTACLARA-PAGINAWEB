@@ -13,13 +13,14 @@
 <link rel="icon" href="../assets/img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=Cinzel:wght@600;700&family=Yellowtail&display=swap">
 <link rel="stylesheet" href="../assets/css/estilos.css?v=13">
+<link rel="stylesheet" href="../assets/css/empresa.css?v=11">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"RealEstateAgent","name":"Monte Olimpo","description":"Desarrollo y comercialización de proyectos de lotes campestres en el Atlántico, Colombia.","areaServed":"Atlántico, Colombia","telephone":"+573002846310"}
 </script>
 </head>
-<body class="tema-mo" data-olimpo-base="../">
+<body class="tema-mo mo-v2" data-olimpo-base="../">
 
 <header class="header" data-header>
   <div class="wrap">
@@ -31,8 +32,8 @@
       <a href="#trayectoria">Trayectoria</a>
       <a href="../">Santa Clara</a>
       <a href="#financiacion">Financiación</a>
-      <a href="#preguntas">Olimpo</a>
-      <a class="btn btn--sm" href="../#lotes">Ver lotes</a>
+      <a class="btn btn--sm btn--cliente" href="../portal/" hidden data-portal>Ya soy cliente</a>
+      <a class="btn btn--sm" href="#soy-nuevo">Cómo comprar</a>
     </nav>
     <button class="menu-toggle" data-menu-toggle aria-expanded="false" aria-label="Abrir menú"><span></span><span></span></button>
   </div>
@@ -49,11 +50,11 @@
     </div>
     <div class="hero__shade"></div>
     <div class="wrap">
-      <h1 id="hero-title" class="rule"><em>Cumplamos juntos</em> el sueño de tu tierra.</h1>
+      <h1 id="hero-title"><em>Cumplamos juntos</em> el sueño de tu tierra.</h1>
       <p class="lede">Desarrollamos proyectos campestres en el Atlántico. Cuatro ya pertenecen a sus propietarios. El quinto, Santa Clara, puede ser el lugar donde empiece el tuyo.</p>
       <div class="btn-row">
-        <a class="btn" href="../">Conocer Santa Clara <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
-        <a class="btn btn--ghost" href="#trayectoria">Ver nuestra trayectoria</a>
+        <a class="btn" href="#trayectoria">Ver nuestra trayectoria <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+        <a class="btn btn--ghost" href="../">Conocer Santa Clara</a>
       </div>
       <div class="hero__foot">
         <dl class="kpis">
@@ -80,7 +81,7 @@
       <div class="sec-head">
         <span class="eyebrow">Nuestra trayectoria</span>
         <h2 id="tray-title" class="reveal">Cuatro proyectos entregados a sus dueños. <em>El quinto lleva tu nombre.</em></h2>
-        <p data-words>San Nicolás, Monte Olimpo, La Inmaculada y Las Mercedes hoy son de las familias que confiaron en nosotros. <em>Santa Clara es la próxima historia.</em></p>
+        <p data-words>San Nicolás, Las Mercedes, La Inmaculada y Monte Olimpo hoy son de las familias que confiaron en nosotros. <em>Santa Clara es la próxima historia.</em></p>
       </div>
 
       <div class="tray__grid" data-proyectos></div>
@@ -153,17 +154,28 @@
     </div>
   </section>
 
-  <!-- RECORRIDO 360 · próximamente -->
-  <section class="tour360" aria-labelledby="t360-title">
-    <div class="tour360__pano" aria-hidden="true"></div>
-    <div class="wrap tour360__in">
-      <span class="tour360__ring" aria-hidden="true"><b>360°</b></span>
-      <div>
-        <span class="soon">Próximamente</span>
-        <h2 id="t360-title">Camina Santa Clara <em>sin salir de casa.</em></h2>
-        <p>Muy pronto podrás recorrer el proyecto en 360° desde tu celular y separar tu lote en línea, estés donde estés.</p>
+  <!-- SOY NUEVO · YA SOY CLIENTE -->
+  <section class="sec camino" id="soy-nuevo" aria-labelledby="camino-title">
+    <div class="wrap">
+      <div class="camino__head">
+        <span class="eyebrow">Soy nuevo</span>
+        <h2 id="camino-title">Así empiezas a ser parte de <em>la familia Monte Olimpo.</em></h2>
+        <!-- Con el portal activo: "Cinco pasos, y desde el primer pago tienes tu propio portal de propietario." -->
+        <p>Cinco pasos para tener tu propio lote campestre, con un equipo que te acompaña en cada uno.</p>
       </div>
-      <a class="btn btn--ghost" data-wa="Hola, quiero que me avisen cuando esté listo el recorrido 360° de Santa Clara.">Avísame cuando esté listo</a>
+      <ol class="camino__pasos">
+        <li><span class="camino__n">1</span><b>Elige tu lote</b><span>Recorre el plano de Santa Clara y encuentra el que va con tu sueño y tu bolsillo.</span></li>
+        <li><span class="camino__n">2</span><b>Cotiza y sepáralo</b><span>Mandas tu cotización por WhatsApp y un asesor te aparta el lote con la separación.</span></li>
+        <li><span class="camino__n">3</span><b>Firma tu promesa</b><span>Formalizamos la compra con tu promesa de compraventa y tu plan de pagos sin intereses.</span></li>
+        <!-- Con el portal activo: 4 · Recibe tu acceso: "Te llega al correo la invitación a tu portal de propietario, con tu usuario y tu contraseña." -->
+        <li><span class="camino__n">4</span><b>Paga a tu ritmo</b><span>Vas pagando tu plan mes a mes, sin intereses, y tu asesor te acompaña en todo el proceso.</span></li>
+        <!-- Con el portal activo: 5: "Sigue los avances del proyecto, tus pagos, los servicios para tu lote y ofertas pensadas solo para ti." -->
+        <li><span class="camino__n">5</span><b>Disfruta tu tierra</b><span>Tu lote con su matrícula independiente, para vivir el campo con tu familia.</span></li>
+      </ol>
+      <div class="camino__cta">
+        <a class="btn" href="../#lotes">Elegir mi lote <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+        <a class="btn btn--cliente" href="../portal/" hidden data-portal>Ya soy cliente · entrar a mi portal</a>
+      </div>
     </div>
   </section>
 
@@ -239,15 +251,33 @@
     </div>
   </section>
 
-  <!-- CIERRE -->
-  <section class="sec cierre" id="contacto" aria-labelledby="cierre-title">
+  <!-- CLIENTES FELICES -->
+  <!-- Oculta hasta tener los testimonios reales (con autorización de cada familia): quitar "hidden" para mostrarla -->
+  <section class="sec felices" id="clientes-felices" aria-labelledby="felices-title" hidden>
     <div class="wrap">
-      <span class="eyebrow">Hablemos</span>
-      <h2 id="cierre-title">Tu próximo patrimonio <em>empieza aquí.</em></h2>
-      <div class="btn-row">
-        <a class="btn" href="../">Conocer Santa Clara <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+      <div class="sec-head">
+        <span class="eyebrow">Clientes felices</span>
+        <h2 id="felices-title">Familias que ya <em>cumplieron su sueño.</em></h2>
+        <p>Cuatro proyectos entregados y vendidos al 100%. Estas son algunas de las familias que hoy disfrutan su tierra.</p>
+      </div>
+      <div class="felices__grid">
+        <!-- Espacios para testimonios reales: nombre, proyecto, frase y foto o video, con autorización de cada familia -->
+        <article class="testimonio testimonio--pendiente">
+          <div class="testimonio__media"><span class="testimonio__play" aria-hidden="true"><svg viewBox="0 0 22 22" fill="currentColor"><path d="M6 3l13 8-13 8z"/></svg></span></div>
+          <div class="testimonio__cuerpo"><span class="testimonio__proy">San Nicolás</span><b>Testimonio en video</b><small>Próximamente</small></div>
+        </article>
+        <article class="testimonio testimonio--pendiente">
+          <div class="testimonio__media"><span class="testimonio__play" aria-hidden="true"><svg viewBox="0 0 22 22" fill="currentColor"><path d="M6 3l13 8-13 8z"/></svg></span></div>
+          <div class="testimonio__cuerpo"><span class="testimonio__proy">Las Mercedes</span><b>Testimonio en video</b><small>Próximamente</small></div>
+        </article>
+        <article class="testimonio testimonio--pendiente">
+          <div class="testimonio__media"><span class="testimonio__play" aria-hidden="true"><svg viewBox="0 0 22 22" fill="currentColor"><path d="M6 3l13 8-13 8z"/></svg></span></div>
+          <div class="testimonio__cuerpo"><span class="testimonio__proy">La Inmaculada</span><b>Testimonio en video</b><small>Próximamente</small></div>
+        </article>
+      </div>
+      <div class="felices__cta">
+        <a class="btn" href="../#lotes">Elegir mi lote en Santa Clara <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
         <a class="btn btn--ghost" data-wa="Hola, quiero hablar con un asesor de Monte Olimpo sobre Santa Clara – Poblado Campestre.">Hablar con un asesor</a>
-        <a class="btn btn--ghost" data-wa="Hola, vivo fuera de Colombia y quiero información para comprar un lote en Santa Clara.">¿Vives fuera de Colombia?</a>
       </div>
     </div>
   </section>
@@ -296,10 +326,10 @@
 
 <div class="dock" data-dock>
   <a class="btn" href="../#lotes">Ver lotes</a>
-  <a class="btn btn--ghost" data-wa="Hola, quiero información sobre Santa Clara – Poblado Campestre.">WhatsApp</a>
+  <a class="btn btn--cliente" href="../portal/" hidden data-portal>Ya soy cliente</a>
 </div>
 
-<script src="../data/config.js?v=12"></script>
+<script src="../data/config.js?v=13"></script>
 <script src="../data/faq.js?v=10"></script>
 <script src="../data/santa-clara.js?v=11"></script>
 <script src="../api/inventario"></script>
@@ -308,5 +338,7 @@
 <script src="../assets/js/animaciones.js?v=10"></script>
 <script src="../assets/js/olimpo.js?v=15"></script>
 <script src="../assets/js/inicio.js?v=10"></script>
+<script src="../assets/js/logos-proyectos.js?v=4"></script>
+<script src="../assets/js/empresa.js?v=3"></script>
 </body>
 </html>

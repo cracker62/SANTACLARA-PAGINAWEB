@@ -9,6 +9,12 @@ window.MO_CONFIG = {
     visible: "+57 300 284 6310"
   },
 
+  // Cartera: pagos y cuotas de los propietarios (lo usa el portal de clientes)
+  cartera: {
+    numero: "573017159701",
+    visible: "301 715 9701"
+  },
+
   redes: {
     instagram: { usuario: "santaclarapobladocampestre", url: "https://www.instagram.com/santaclarapobladocampestre/" },
     tiktok:    { usuario: "santaclarapobladoc",         url: "https://www.tiktok.com/@santaclarapobladoc" },
@@ -58,10 +64,11 @@ window.MO_CONFIG = {
       mapa: "https://maps.app.goo.gl/RfTXgP4545xXYMKC8"
     },
     comercializados: [
-      { nombre: "San Nicolás",  nota: "Nuestro primer proyecto", ubicacion: null, mapa: null, lat: null, lng: null },
-      { nombre: "Monte Olimpo", nota: null, ubicacion: "Villa Polo Nuevo · Santo Tomás", mapa: "https://maps.app.goo.gl/YgrKbRekhRJQd6us9", lat: 10.7716349, lng: -74.8059453 },
+      // En orden cronológico (confirmado por la empresa): San Nicolás → Las Mercedes → La Inmaculada → Monte Olimpo → Santa Clara
+      { nombre: "San Nicolás",  nota: "Nuestro primer proyecto", ubicacion: "Santo Tomás", mapa: null, lat: null, lng: null },
+      { nombre: "Las Mercedes", nota: null, ubicacion: "Atlántico", mapa: "https://maps.app.goo.gl/qGGASZ4DBB4cW6mN6", lat: 10.7728379, lng: -74.8086873 },
       { nombre: "La Inmaculada", nota: null, ubicacion: "Atlántico", mapa: "https://maps.app.goo.gl/qTkPQbE3S5V2toFm6", lat: 10.765582, lng: -74.818933 },
-      { nombre: "Las Mercedes", nota: null, ubicacion: "Atlántico", mapa: "https://maps.app.goo.gl/qGGASZ4DBB4cW6mN6", lat: 10.7728379, lng: -74.8086873 }
+      { nombre: "Monte Olimpo", nota: null, ubicacion: "Villa Polo Nuevo · Santo Tomás", mapa: "https://maps.app.goo.gl/YgrKbRekhRJQd6us9", lat: 10.7716349, lng: -74.8059453 }
     ]
   }
 };
