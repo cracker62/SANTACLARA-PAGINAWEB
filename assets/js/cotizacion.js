@@ -11,6 +11,7 @@
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var nf = new Intl.NumberFormat("es-CO");
   var fmtPct = function (n) { return String(n).replace(".", ","); };
+  var CR = String.fromCharCode(10);
   var NS = "http://www.w3.org/2000/svg";
 
   var q = new URLSearchParams(location.search);
@@ -55,7 +56,7 @@
   $("[data-d-area]").textContent = nf.format(lote.area) + " m²";
   $("[data-d-vm2]").textContent = lote.vm2 ? MO.pesos(lote.vm2) : "—";
   $("[data-d-ubic]").textContent = lote.ubic || "—";
-  $("[data-d-mat]").textContent = lote.mat || "En trámite";
+  $("[data-d-mat]").textContent = (lote.mat || "En trámite").replace(/-/g, "‑");
   $("[data-d-precio]").textContent = MO.pesos(lote.precio);
   $("[data-pie-wa]").textContent = CFG.whatsapp.visible;
   $("[data-pie-web]").textContent = location.host || "santaclara";
@@ -81,10 +82,7 @@
       "Para un lote de " + nf.format(lote.area) + " m² el plazo de referencia va de " + regla.min_months + " a " +
       regla.max_months + " meses y se acuerda con tu asesor.";
 
-    var celdas = proy.filas.map(function (f) {
-      return "<div><span>Mes " + f.mes + "</span><b>" + MO.pesos(f.cuota) + "</b></div>";
-    }).join("");
-    $("[data-cuotas]").innerHTML = '<div><span>Inicial</span><b>' + MO.pesos(proy.inicial) + "</b></div>" + celdas;
+    pintarCuotas(proy);
 
     var estado = lote.estado === "disponible" ? "" :
       " Este lote aparece hoy como " + (lote.estado === "reservado" ? "reservado por otro cliente" : lote.estado === "vendido" ? "vendido" : "no disponible") + ": confirma con tu asesor antes de avanzar.";
@@ -114,6 +112,24 @@
       " Cotización generada el " + fecha + ".";
   }
 
+  /* Plan de pagos en columnas: mes 1 arriba, sigue hacia abajo y pasa a la columna de la derecha */
+  function pintarCuotas(proy) {
+    var filas = [{ et: "Inicial", v: proy.inicial, ini: true }].concat(proy.filas.map(function (f) {
+      return { et: "Mes " + f.mes, v: f.cuota };
+    }));
+    var cols = filas.length > 22 ? 3 : 2;
+    var porCol = Math.ceil(filas.length / cols), html = "";
+    for (var c = 0; c < cols; c++) {
+      var trozo = filas.slice(c * porCol, (c + 1) * porCol);
+      if (!trozo.length) continue;
+      html += "<table><thead><tr><th>Cuota</th><th>Valor</th></tr></thead><tbody>" +
+        trozo.map(function (f) { return '<tr' + (f.ini ? ' class="ini"' : "") + "><td>" + f.et + "</td><td>" + MO.pesos(f.v) + "</td></tr>"; }).join("") +
+        "</tbody></table>";
+    }
+    $("[data-cuotas]").innerHTML = html;
+    $("[data-cuotas]").style.gridTemplateColumns = "repeat(" + cols + ",minmax(0,1fr))";
+  }
+
   function pintarCliente() {
     var n = inNombre.value.trim(), w = inWa.value.trim();
     $("[data-cliente]").hidden = !n && !w;
@@ -137,35 +153,118 @@
     window.print();
   });
 
-  /* Enviar la cotización al asesor: WhatsApp no recibe archivos desde la web, así que va el resumen
-     completo más el enlace de esta misma cotización, que el asesor y el cliente conservan en el chat. */
-  $("#c-wa-enviar").addEventListener("click", function () {
-    var n = inNombre.value.trim();
+  /* ---------- enviar la cotización en PDF por WhatsApp ----------
+     Se arma el PDF en el navegador y se comparte: en el celular, el propio WhatsApp del cliente
+     manda el archivo al asesor; en el computador se descarga y se abre el chat para adjuntarlo. */
+  var errBox = $("#c-err");
+  function fallo(m, campo) { errBox.hidden = false; errBox.textContent = m; if (campo) campo.focus(); }
+
+  function mensajeAsesor() {
+    var n = inNombre.value.trim(), w = inWa.value.trim();
+    var t = "Hola, soy " + n + " y quiero el lote " + lote.id + " de Santa Clara – Poblado Campestre (Mz. " + lote.mz + " · Lote " + lote.n + ")." + CR + CR +
+      "Mi WhatsApp: " + w + CR + "Área: " + nf.format(lote.area) + " m²" + (lote.ubic ? " · " + lote.ubic : "") + CR +
+      "Valor del lote: " + MO.pesos(lote.precio) + CR;
     if (modo === "contado") {
       var c = MO.contado(lote.precio);
-      var msgC = (n ? "Hola, soy " + n + ". " : "Hola. ") + "Quiero comprar DE CONTADO el lote " + lote.id + " de Santa Clara – Poblado Campestre:\n\n" +
-        "Mz. " + lote.mz + " · Lote " + lote.n + " · " + nf.format(lote.area) + " m²\n" +
-        "Valor de lista: " + MO.pesos(c.lista) + "\n" +
-        (c.pct ? "Descuento por pago de contado (" + fmtPct(c.pct) + "%): − " + MO.pesos(c.descuento) + "\n" : "") +
-        "Valor de contado: " + MO.pesos(c.total) + "\n" +
-        (c.separacion ? "Separación: " + MO.pesos(c.separacion) + "\nSaldo" + (c.dias ? " (hasta " + c.dias + " días)" : "") + ": " + MO.pesos(c.saldo) + "\n" : "") +
-        "\nCotización completa: " + location.href + "\n\nQuiero confirmar disponibilidad y los pasos para separarlo.";
-      if (window.dataLayer) window.dataLayer.push({ event: "cotizacion_whatsapp", lote: lote.id, modo: "contado" });
-      return window.open(MO.waLink(msgC), "_blank", "noopener");
+      t += "Forma de pago: DE CONTADO" + CR + (c.pct ? "Descuento " + fmtPct(c.pct) + "%: − " + MO.pesos(c.descuento) + CR : "") +
+        "Valor de contado: " + MO.pesos(c.total) + CR + (c.separacion ? "Separación: " + MO.pesos(c.separacion) + CR : "");
+    } else {
+      var proy = MO.proyeccion(lote.precio, pct, meses);
+      t += "Forma de pago: FINANCIADO" + CR + "Cuota inicial " + pct + "%: " + MO.pesos(proy.inicial) + CR +
+        "Cuota mensual: " + MO.pesos(proy.cuota) + " × " + proy.meses + " meses (última " + MO.pesos(proy.ultima) + ")" + CR;
     }
-    var proy = MO.proyeccion(lote.precio, pct, meses);
-    var msg = (n ? "Hola, soy " + n + ". " : "Hola. ") + "Esta es la cotización del lote " + lote.id + " de Santa Clara – Poblado Campestre:\n\n" +
-      "Mz. " + lote.mz + " · Lote " + lote.n + " · Etapa " + lote.etapa + "\n" +
-      "Área: " + nf.format(lote.area) + " m²" + (lote.ubic ? " · " + lote.ubic : "") + "\n" +
-      "Valor del lote: " + MO.pesos(lote.precio) + "\n" +
-      (F.reservation_amount ? "Separación: " + MO.pesos(F.reservation_amount) + "\n" : "") +
-      "Cuota inicial " + pct + "%: " + MO.pesos(proy.inicial) + "\n" +
-      "Saldo a financiar: " + MO.pesos(proy.saldo) + "\n" +
-      "Cuota mensual a " + meses + " meses sin intereses: " + MO.pesos(proy.cuota) + "\n\n" +
-      "Cotización completa: " + location.href + "\n\n" +
-      "Quiero que me confirmen disponibilidad y los pasos para separarlo.";
-    if (window.dataLayer) window.dataLayer.push({ event: "cotizacion_whatsapp", lote: lote.id, meses: meses, inicial: pct });
-    window.open(MO.waLink(msg), "_blank", "noopener");
+    return t + CR + "Adjunto mi cotización en PDF. Quiero confirmar disponibilidad y los pasos para separarlo.";
+  }
+
+  /* El plano es un SVG con el terreno pintado: se convierte a imagen para que salga igual en el PDF */
+  function planoComoImagen() {
+    var svg = $("[data-plano] svg");
+    if (!svg) return Promise.resolve(null);
+    var caja = svg.getBoundingClientRect();
+    var clon = svg.cloneNode(true);
+    var img = clon.querySelector("image");
+    var href = img && (img.getAttribute("href") || img.getAttribute("xlink:href"));
+    var paso = !href || href.indexOf("blob:") !== 0 ? Promise.resolve(href) : fetch(href).then(function (r) { return r.blob(); }).then(function (b) {
+      return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(b); });
+    });
+    return paso.then(function (data) {
+      if (img && data) { img.setAttribute("href", data); img.removeAttribute("xlink:href"); }
+      var an = Math.round(caja.width * 2), al = Math.round(caja.height * 2);
+      clon.setAttribute("width", an); clon.setAttribute("height", al);
+      var xml = new XMLSerializer().serializeToString(clon);
+      return new Promise(function (res, rej) {
+        var im = new Image();
+        im.onload = function () {
+          var c = document.createElement("canvas"); c.width = an; c.height = al;
+          c.getContext("2d").drawImage(im, 0, 0, an, al);
+          res({ url: c.toDataURL("image/jpeg", 0.88), alto: caja.height });
+        };
+        im.onerror = rej;
+        im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+      });
+    }).catch(function () { return null; });
+  }
+
+  function armarPDF() {
+    if (!window.html2canvas || !window.jspdf) return Promise.reject(new Error("sin librerías"));
+    var hoja = $("[data-hoja]"), cajaPlano = $("[data-plano]"), svg = $("[data-plano] svg"), sustituto = null;
+    return planoComoImagen().then(function (p) {
+      if (p && svg) {
+        sustituto = document.createElement("img");
+        sustituto.src = p.url; sustituto.style.cssText = "display:block;width:100%;height:" + p.alto + "px;object-fit:cover";
+        cajaPlano.replaceChild(sustituto, svg);
+      }
+      return html2canvas(hoja, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+    }).then(function (lienzo) {
+      if (sustituto && svg) cajaPlano.replaceChild(svg, sustituto);
+      var pdf = new window.jspdf.jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+      var ancho = 595.28, alto = 841.89, margen = 18;
+      var w = ancho - margen * 2, h = lienzo.height * w / lienzo.width;
+      if (h > alto - margen * 2) { h = alto - margen * 2; w = lienzo.width * h / lienzo.height; }
+      pdf.addImage(lienzo.toDataURL("image/jpeg", 0.92), "JPEG", (ancho - w) / 2, margen, w, h);
+      return pdf.output("blob");
+    }).catch(function (e) {
+      if (sustituto && svg && sustituto.parentNode) cajaPlano.replaceChild(svg, sustituto);
+      throw e;
+    });
+  }
+
+  function nombreArchivo() {
+    return "Cotizacion " + lote.id + " - Santa Clara" + (inNombre.value.trim() ? " - " + inNombre.value.trim() : "") + ".pdf";
+  }
+
+  var enviando = false;
+  $("#c-wa-enviar").addEventListener("click", function () {
+    var boton = this;
+    if (enviando) return;
+    var n = inNombre.value.trim(), w = inWa.value.replace(/[^0-9+]/g, "");
+    if (n.length < 3) return fallo("Escribe tu nombre y apellido.", inNombre);
+    if (w.replace(/[^0-9]/g, "").length < 7) return fallo("Escribe tu número de WhatsApp.", inWa);
+    errBox.hidden = true;
+    enviando = true; boton.disabled = true;
+    var textoOriginal = boton.textContent;
+    boton.textContent = "Armando tu cotización…";
+    var msg = mensajeAsesor();
+    if (window.dataLayer) window.dataLayer.push({ event: "cotizacion_whatsapp", lote: lote.id, modo: modo });
+    armarPDF().then(function (blob) {
+      var archivo = new File([blob], nombreArchivo(), { type: "application/pdf" });
+      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        return navigator.share({ files: [archivo], text: msg, title: "Cotización " + lote.id + " · Santa Clara" });
+      }
+      // En computador: se descarga el PDF y se abre el chat del asesor para adjuntarlo
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = archivo.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      window.open(MO.waLink(msg), "_blank", "noopener");
+      errBox.hidden = false;
+      errBox.textContent = "Se descargó tu cotización en PDF y se abrió WhatsApp: adjunta el archivo en el chat.";
+    }).catch(function (e) {
+      if (window.console) console.error("cotización: no se pudo armar el PDF", e);
+      // Si el navegador no puede armar el PDF, al menos va el mensaje con el enlace
+      window.open(MO.waLink(msg + CR + CR + "Cotización: " + location.href), "_blank", "noopener");
+    }).then(function () {
+      enviando = false; boton.disabled = false; boton.textContent = textoOriginal;
+    });
   });
 
   /* ---------- plano con el mismo aspecto del explorador: pasto, árboles, lagos y el lote señalado ---------- */

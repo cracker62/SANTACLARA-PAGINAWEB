@@ -22,33 +22,37 @@
 
   /* ---------- barra de control (no se imprime) ---------- */
   .barra{position:sticky;top:0;z-index:5;background:var(--marino);color:#fff;padding:12px 16px}
-  .barra__in{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .barra__in{max-width:920px;margin:0 auto;display:grid;gap:12px}
+  .barra__t{margin:0;font-size:13px;font-weight:700;letter-spacing:.04em;color:#fff}
+  .barra__campos{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .barra__acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .barra .err{margin:0;font-size:13px;font-weight:600;color:#FFD9CC}
   .barra label{display:flex;flex-direction:column;gap:4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.72)}
   .barra input,.barra select{font-family:inherit;font-size:14px;padding:8px 10px;border-radius:2px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;min-width:150px}
   .barra input::placeholder{color:rgba(255,255,255,.5)}
   .barra select option{color:#000}
   .barra .crece{flex:1 1 180px}
-  .btn-wa{margin-left:auto;font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:#25D366;color:#0B3B23;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .btn-wa{font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:#25D366;color:#0B3B23;cursor:pointer;display:flex;align-items:center;gap:8px}
   .btn-wa:hover{background:#1FBE5A}
   .btn-wa svg{width:17px;height:17px;fill:currentColor}
   .btn-pdf{font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:2px;border:0;background:var(--sol);color:var(--marino);cursor:pointer}
   .btn-pdf:hover{background:#FFC15A}
-  .btn-volver{font-family:inherit;font-size:13px;font-weight:600;padding:11px 16px;border-radius:2px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;text-decoration:none}
+  .btn-volver{margin-left:auto;font-family:inherit;font-size:13px;font-weight:600;padding:11px 16px;border-radius:2px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;text-decoration:none}
   .ayuda{max-width:920px;margin:0 auto;padding:10px 16px 0;font-size:12.5px;color:var(--tinta-2)}
 
   /* ---------- la hoja ---------- */
   .hoja{max-width:920px;margin:18px auto 40px;background:#fff;padding:0 0 22px;box-shadow:0 18px 50px -24px rgba(27,42,69,.5)}
-  .cab{background:var(--marino);color:#fff;padding:22px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .cab{background:var(--marino);color:#fff;padding:20px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:3px solid var(--sol)}
   .cab__t{display:flex;flex-direction:column;gap:3px}
-  .cab .kicker{font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--sol)}
+  .cab .kicker{font-size:11.5px;font-weight:700;letter-spacing:.22em;color:var(--sol)}
   .cab .fecha{font-size:12px;color:rgba(255,255,255,.75)}
-  .cab img{height:48px;width:auto}
+  .cab img{height:62px;width:auto}
   .cliente{background:var(--arena);border-bottom:1px solid var(--linea);padding:11px 30px;font-size:13px;display:flex;flex-wrap:wrap;gap:20px}
   .cliente b{font-weight:700}
   .cliente span{color:var(--tinta-2)}
 
   .cuerpo{padding:24px 30px 0}
-  .titulo{margin:0 0 3px;font-size:27px;font-weight:700;letter-spacing:-.02em}
+  .titulo{margin:0 0 3px;font-size:27px;font-weight:700;letter-spacing:-.01em}
   .subtitulo{margin:0 0 20px;color:var(--tinta-2);font-size:13px}
 
   .par{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
@@ -59,12 +63,12 @@
   .campos{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:0}
   .campo{display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--arena-2);padding-bottom:7px}
   .campo dt{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--tinta-2)}
-  .campo dd{margin:0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .campo dd{margin:0;font-size:15px;font-weight:600;letter-spacing:0;white-space:nowrap}
   .campo--ancho{grid-column:1 / -1}
 
   .total{margin-top:14px;background:var(--marino);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-radius:2px}
   .total span{font-size:13px;font-weight:600}
-  .total b{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .total b{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0}
 
   .pago{list-style:none;margin:0;padding:0}
   .pago li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid var(--arena-2);font-size:13.5px}
@@ -84,7 +88,7 @@
   /* la cuota mensual es lo que el cliente busca: va en verde y grande */
   .hero-cuota{background:var(--verde);color:#fff;padding:15px 16px;display:grid;gap:2px;border-bottom:1px solid var(--linea)}
   .hero-cuota .et{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82)}
-  .hero-cuota b{font-size:30px;font-weight:700;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .hero-cuota b{font-size:30px;font-weight:700;line-height:1.05;letter-spacing:0;font-variant-numeric:tabular-nums}
   .hero-cuota .nota{font-size:12px;color:rgba(255,255,255,.88)}
 
   /* plano */
@@ -94,13 +98,18 @@
   .plano .pin-sub{font-size:10.5px;font-weight:600;fill:rgba(255,255,255,.88)}
   .plano .mz-eti{font-size:15px;font-weight:700;fill:rgba(27,42,69,.42)}
 
-  /* tabla de cuotas */
+  /* plan de pagos: columnas de mes a mes, en los colores de Santa Clara */
   .cuotas{margin-top:18px}
   .cuotas .caja__in{padding:12px 16px 14px}
-  .grid-cuotas{column-count:4;column-gap:20px}
-  .grid-cuotas div{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3.5px 0;border-bottom:1px solid var(--arena-2);font-variant-numeric:tabular-nums;break-inside:avoid}
-  .grid-cuotas div span{color:var(--tinta-2)}
-  .grid-cuotas div b{font-weight:600}
+  .cuotas-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
+  .cuotas-cols table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+  .cuotas-cols th{background:var(--marino);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 9px;text-align:left}
+  .cuotas-cols th:last-child{text-align:right}
+  .cuotas-cols td{padding:4px 9px;border-bottom:1px solid var(--arena-2);color:var(--tinta-2)}
+  .cuotas-cols td:last-child{text-align:right;font-weight:600;color:var(--tinta)}
+  .cuotas-cols tr:nth-child(even) td{background:var(--arena)}
+  .cuotas-cols tr.ini td{background:#FDF3E2;font-weight:700;color:var(--tinta)}
+  .cuotas-cols tr:last-child td{border-bottom:0}
 
   .aviso{margin:16px 30px 0;font-size:10.5px;line-height:1.55;color:var(--tinta-2)}
   .pie{margin:16px 30px 0;padding-top:12px;border-top:1px solid var(--linea);display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--tinta-2)}
@@ -111,7 +120,7 @@
 
   @media screen and (max-width:760px){
     .par{grid-template-columns:1fr}
-    .grid-cuotas{column-count:2}
+    .cuotas-cols{grid-template-columns:1fr}
     .cab{flex-direction:column;align-items:flex-start;gap:14px}
     .cuerpo,.cab,.cliente{padding-left:18px;padding-right:18px}
     .aviso,.pie{margin-left:18px;margin-right:18px}
@@ -124,7 +133,7 @@
     .barra,.ayuda{display:none !important}
     .hoja{max-width:none;margin:0;box-shadow:none;padding-bottom:0}
     .cab{padding:14px 18px}
-    .cab img{height:38px}
+    .cab img{height:52px}
     .cab .titulo{font-size:20px}
     .cuerpo{padding:14px 18px 0}
     .titulo{font-size:19px}
@@ -143,8 +152,10 @@
     .plano svg{height:auto;max-height:none}
     .plano{margin-top:8px}
     .plano{break-inside:avoid}
-    .grid-cuotas{column-count:6;column-gap:10px}
-    .grid-cuotas div{font-size:8px;padding:1px 0}
+    .cuotas-cols{gap:8px 14px}
+    .cuotas-cols table{font-size:8.5px}
+    .cuotas-cols th{font-size:7.5px;padding:3px 7px}
+    .cuotas-cols td{padding:2px 7px}
     .cuotas .caja__in{padding:8px 12px 10px}
     .aviso{margin-top:7px}
     .pie{margin-top:7px;padding-top:7px}
@@ -156,27 +167,33 @@
 
 <div class="barra" data-barra>
   <div class="barra__in">
-    <label class="crece">Nombre del cliente
-      <input type="text" id="c-nombre" placeholder="Opcional" autocomplete="name">
-    </label>
-    <label>WhatsApp
-      <input type="tel" id="c-wa" placeholder="Opcional" autocomplete="tel">
-    </label>
-    <label>Forma de pago
-      <select id="c-modo"><option value="financiado">Financiado</option><option value="contado">De contado</option></select>
-    </label>
-    <label data-solo-fin>Cuota inicial
-      <select id="c-pct"></select>
-    </label>
-    <label data-solo-fin>Plazo
-      <select id="c-meses"></select>
-    </label>
-    <button type="button" class="btn-wa" id="c-wa-enviar">Enviar al asesor por WhatsApp</button>
-    <button type="button" class="btn-pdf" id="c-pdf">Descargar PDF</button>
-    <a class="btn-volver" href="./#lotes">Volver al plano</a>
+    <p class="barra__t">Completa tus datos y envíasela al asesor</p>
+    <div class="barra__campos">
+      <label class="crece">Nombre y apellido
+        <input type="text" id="c-nombre" placeholder="Tu nombre" autocomplete="name" required>
+      </label>
+      <label class="crece">Tu WhatsApp
+        <input type="tel" id="c-wa" placeholder="300 000 0000" inputmode="tel" autocomplete="tel" required>
+      </label>
+      <label>Forma de pago
+        <select id="c-modo"><option value="financiado">Financiado</option><option value="contado">De contado</option></select>
+      </label>
+      <label data-solo-fin>Cuota inicial
+        <select id="c-pct"></select>
+      </label>
+      <label data-solo-fin>Plazo
+        <select id="c-meses"></select>
+      </label>
+    </div>
+    <p class="err" id="c-err" hidden></p>
+    <div class="barra__acciones">
+      <button type="button" class="btn-wa" id="c-wa-enviar">Enviar mi cotización por WhatsApp</button>
+      <button type="button" class="btn-pdf" id="c-pdf">Descargar PDF</button>
+      <a class="btn-volver" href="./#lotes">Volver al plano</a>
+    </div>
   </div>
 </div>
-<p class="ayuda"><b>Enviar al asesor</b> abre WhatsApp con esta cotización lista para mandar; el asesor la recibe y tú la conservas en tu chat. <b>Descargar PDF</b> abre la ventana de impresión: elige «Guardar como PDF» (en el celular está en Compartir → Imprimir).</p>
+<p class="ayuda">Al enviar se arma tu <b>cotización en PDF</b> y se abre WhatsApp para que se la mandes al asesor desde tu propio número. En el computador el PDF se descarga y lo adjuntas en el chat.</p>
 
 <main class="hoja" data-hoja hidden>
   <header class="cab">
@@ -241,7 +258,7 @@
 
     <section class="caja cuotas">
       <h2>Plan de pagos mes a mes</h2>
-      <div class="caja__in"><div class="grid-cuotas" data-cuotas></div></div>
+      <div class="caja__in"><div class="cuotas-cols" data-cuotas></div></div>
     </section>
   </div>
 
@@ -261,8 +278,10 @@
 <script src="data/config.js?v=12"></script>
 <script src="data/santa-clara.js?v=11"></script>
 <script src="api/inventario"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=16"></script>
+<script src="assets/js/cotizacion.js?v=19" defer=""></script>
 </body>
 </html>
