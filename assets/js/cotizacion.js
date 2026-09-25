@@ -50,10 +50,26 @@
   /* ---------- datos fijos del lote ---------- */
   var fecha = new Date().toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
   $("[data-fecha]").textContent = fecha;
+  // Vigencia: la cotización vale 15 días (config: financiacion.vigencia_cotizacion_dias)
+  var diasVigencia = F.vigencia_cotizacion_dias || 15;
+  var vence = new Date(); vence.setDate(vence.getDate() + diasVigencia);
+  var venceTxt = vence.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  var vigencia = "Válida por " + diasVigencia + " días, hasta el " + venceTxt + ".";
+  $("[data-vigencia]").textContent = "Válida hasta el " + venceTxt;
   $("[data-d-etapa]").textContent = lote.etapa;
   $("[data-d-mz]").textContent = lote.mz;
   $("[data-d-lote]").textContent = lote.n;
   $("[data-d-area]").textContent = nf.format(lote.area) + " m²";
+  // Frente y fondo según el plano del arquitecto (lotes irregulares: la medida de cada lado)
+  if (lote.frente) {
+    $("[data-d-medidas-caja]").hidden = false;
+    if (lote.lados) {
+      $("[data-d-medidas-t]").textContent = "Medidas (irregular)";
+      $("[data-d-medidas]").textContent = lote.lados.map(function (v) { return nf.format(v); }).join(" · ") + " m";
+    } else {
+      $("[data-d-medidas]").textContent = nf.format(lote.frente) + " × " + nf.format(lote.fondo) + " m";
+    }
+  }
   $("[data-d-vm2]").textContent = lote.vm2 ? MO.pesos(lote.vm2) : "—";
   $("[data-d-ubic]").textContent = lote.ubic || "—";
   $("[data-d-mat]").textContent = (lote.mat || "En trámite").replace(/-/g, "‑");
@@ -87,7 +103,7 @@
     var estado = lote.estado === "disponible" ? "" :
       " Este lote aparece hoy como " + (lote.estado === "reservado" ? "reservado por otro cliente" : lote.estado === "vendido" ? "vendido" : "no disponible") + ": confirma con tu asesor antes de avanzar.";
     $("[data-aviso]").textContent = "*Proyección con cuota inicial del " + pct + "% y saldo a " + proy.meses +
-      " cuotas mensuales sin intereses, redondeadas a cifras cerradas; la última cuota ajusta el total. " + F.aviso + estado + " Cotización generada el " + fecha + ".";
+      " cuotas mensuales sin intereses, redondeadas a cifras cerradas; la última cuota ajusta el total. " + F.aviso + estado + " Cotización generada el " + fecha + ". " + vigencia;
   }
 
   /* Pago de contado: valor de lista, descuento, valor de contado, separación y saldo */
@@ -109,7 +125,7 @@
       : "El descuento aplica pagando de contado.";
     $("[data-aviso]").textContent = "*Pago de contado con " + (c.pct ? fmtPct(c.pct) + "% de descuento sobre el valor de lista. " : "") +
       F.aviso + (lote.estado === "disponible" ? "" : " Este lote aparece hoy como " + (lote.estado === "reservado" ? "reservado por otro cliente" : "vendido") + ": confirma con tu asesor.") +
-      " Cotización generada el " + fecha + ".";
+      " Cotización generada el " + fecha + ". " + vigencia;
   }
 
   /* Plan de pagos en columnas: mes 1 arriba, sigue hacia abajo y pasa a la columna de la derecha */
@@ -162,7 +178,7 @@
   function mensajeAsesor() {
     var n = inNombre.value.trim(), w = inWa.value.trim();
     var t = "Hola, soy " + n + " y quiero el lote " + lote.id + " de Santa Clara – Poblado Campestre (Mz. " + lote.mz + " · Lote " + lote.n + ")." + CR + CR +
-      "Mi WhatsApp: " + w + CR + "Área: " + nf.format(lote.area) + " m²" + (lote.ubic ? " · " + lote.ubic : "") + CR +
+      "Mi WhatsApp: " + w + CR + "Área: " + nf.format(lote.area) + " m²" + (lote.frente && !lote.lados ? " (" + nf.format(lote.frente) + " × " + nf.format(lote.fondo) + " m)" : "") + (lote.ubic ? " · " + lote.ubic : "") + CR +
       "Valor del lote: " + MO.pesos(lote.precio) + CR;
     if (modo === "contado") {
       var c = MO.contado(lote.precio);

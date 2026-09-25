@@ -154,7 +154,13 @@
 .map .lot.vendido:hover{fill:#D8A08A}
 .map .lot.proximamente{fill:var(--prox);stroke:#AEB5A2;stroke-dasharray:4 3}
 .map .lot.tecnico{fill:url(#hatch);stroke:#9EA293;cursor:default}
-.map .lot.is-dim{opacity:.22}
+/* Filtro: lo que no cumple queda tachado en gris; lo que cumple, con borde dorado */
+.map .lot.is-dim,.map .lot.vendido.is-dim,.map .lot.reservado.is-dim,.map .lot.proximamente.is-dim{fill:url(#tachado);stroke:#fff;stroke-dasharray:none;opacity:.95;cursor:not-allowed}
+.map .lot.is-dim:hover{fill:url(#tachado)}
+.map .lnum.is-dim{opacity:.35;animation:none}
+.map.filtrando .lot.is-match{stroke:#F4A62A;stroke-width:3}
+.map.filtrando .lot.is-match.disponible{fill:#B9E08E}
+.chip--limpiar{background:#1B2A45;color:#fff;border-color:#1B2A45}
 .map .lot.is-sel{stroke:var(--sc-marino);stroke-width:3.2;fill:var(--sc-sol)}
 .map .lot.is-hit{stroke:var(--sc-lago);stroke-width:2.6}
 .map .lnum{font-family:Montserrat,sans-serif;font-size:12px;font-weight:800;fill:#24401A;text-anchor:middle;dominant-baseline:central;pointer-events:none;paint-order:stroke;stroke:rgba(255,255,255,.85);stroke-width:2.4px;stroke-linejoin:round}
@@ -191,14 +197,16 @@
 @media (max-width:1100px){
   .panel{border-left:0;border-top:1px solid var(--sc-linea)}
   .panel__scroll{max-height:none;overflow:visible}
-  .panel.has-lot{position:fixed;inset:auto 0 0 0;z-index:60;max-height:88svh;border-top:0;box-shadow:0 -12px 40px rgba(27,42,69,.28);border-radius:14px 14px 0 0;animation:sheet .35s var(--ease)}
+  /* en celular y tableta el lote se abre en un panel lateral a la derecha, a toda la altura */
+  .panel.has-lot{position:fixed;top:0;right:0;bottom:0;left:auto;z-index:60;width:min(92vw,440px);max-height:none;border-top:0;border-left:1px solid var(--sc-linea);box-shadow:-16px 0 40px rgba(27,42,69,.3);border-radius:16px 0 0 16px;animation:lateral .3s var(--ease)}
   .panel.has-lot .panel__scroll{overflow-y:auto}
-  .panel.has-lot::before{content:"";display:block;width:44px;height:4px;border-radius:4px;background:#CFC8B8;margin:10px auto 0;flex:none}
+  .panel.has-lot::before{display:none}
   .panel.has-lot .list-view{display:none}
   body.sheet-open{overflow:hidden}
   .sheet-backdrop{position:fixed;inset:0;z-index:55;background:rgba(18,28,48,.45)}
 }
 @keyframes sheet{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes lateral{from{transform:translateX(40px);opacity:.6}to{transform:none;opacity:1}}
 .list-view{padding:22px 24px 28px}
 .list-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
 .list-top h3{font-size:22px}
@@ -523,3 +531,45 @@
 .ficha .lead .check{display:grid;grid-template-columns:20px 1fr;gap:9px;align-items:start;font-size:12.5px;font-weight:500;letter-spacing:0;text-transform:none;line-height:1.45;color:var(--sc-tinta-2)}
 .ficha .lead .check input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--sc-marino)}
 .ficha .lead .err{margin:0;font-size:13px;font-weight:600;color:#9C3B22}
+
+/* Nombres de las calles (se leen al acercar el plano) */
+.map .calle{font-family:Montserrat,sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;fill:#6A5530;paint-order:stroke;stroke:rgba(253,251,244,.9);stroke-width:2px;stroke-linejoin:round;pointer-events:none;dominant-baseline:central}
+.map.z0 .calles{display:none}
+.map.z2 .calle{font-size:6.5px}
+/* Zonas comunes con su forma real del plano */
+.map .green--zona{fill:#86B35A;stroke:#6C9744;stroke-width:1.2}
+
+/* Títulos sin la raya delante y con brillo suave, en el color de cada sección */
+.tema-sc .eyebrow::before{display:none}
+.tema-sc .eyebrow{font-weight:800;letter-spacing:.2em;text-shadow:0 0 16px rgba(22,112,184,.35)}
+.tema-sc h2 em,.tema-sc h1 em{text-shadow:0 0 24px rgba(22,112,184,.35)}
+.tema-sc .sc-hero .eyebrow,.tema-sc .sc-sec--marino .eyebrow,.tema-sc .tour .eyebrow{text-shadow:0 0 16px rgba(244,166,42,.55)}
+.tema-sc .sc-hero h1 em,.tema-sc .sc-sec--marino h2 em,.tema-sc .tour h2 em{text-shadow:0 0 26px rgba(244,166,42,.55)}
+
+/* Panel del lote en computador: más ancho, con scroll propio y cifras que no se cortan */
+@media (min-width:1101px){
+  .expl__body{grid-template-columns:minmax(0,1fr) clamp(380px,30vw,470px)}
+  .panel{overflow:hidden}
+  .ficha{padding:18px 22px 26px}
+}
+.price b{font-size:clamp(26px,2.3vw,34px);white-space:nowrap}
+.cuota b{font-size:clamp(28px,2.6vw,40px);white-space:nowrap}
+.ficha h3{font-size:clamp(26px,2.4vw,34px)}
+.kv dd{overflow-wrap:anywhere}
+.count .vend{color:#B5462B}
+.map .kiosco{pointer-events:none}
+
+/* Panel del lote: nada se sale por la derecha ni se mueve de lado; cifras que caben */
+.panel,.panel__scroll{overflow-x:hidden}
+.panel__scroll{scrollbar-gutter:stable}
+.ficha,.ficha > *,.simbox,.simbox > *,.actions,.kv{min-width:0;max-width:100%}
+.price,.cuota{flex-wrap:wrap;row-gap:4px}
+.price b{font-size:clamp(24px,2vw,30px)}
+.cuota b{font-size:clamp(26px,2.2vw,34px)}
+.ficha h3{font-size:clamp(24px,2vw,30px)}
+.actions .btn{white-space:normal;text-align:center;line-height:1.25;padding:10px 14px;height:auto}
+.ficha{padding-bottom:96px}   /* que el botón de Olimpo no tape los botones del final */
+.map .kiosco{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+@media (max-width:1100px){
+  .panel.has-lot .ficha{padding:18px 18px 110px}
+}

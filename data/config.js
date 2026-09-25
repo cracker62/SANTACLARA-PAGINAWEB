@@ -30,6 +30,8 @@ window.MO_CONFIG = {
     // (ej. 1.690.000 → 1.700.000). La última cuota se ajusta para que la suma dé exactamente el saldo.
     redondeo_cuota: 50000,
     // Pago de contado: descuento sobre el valor de lista y plazo para pagar el saldo.
+    // La cotización en PDF es válida por estos días desde que se genera
+    vigencia_cotizacion_dias: 15,
     contado: { descuento_pct: 2.5, plazo_dias: 30 },
     // Plazos de referencia según área del lote (m²). Se negocian con el asesor comercial.
     financing_rules: [

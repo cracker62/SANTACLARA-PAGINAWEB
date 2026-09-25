@@ -168,6 +168,7 @@
       var xs = w.map(function (p) { return p[0]; }), ys = w.map(function (p) { return p[1]; });
       return { x: (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, y: (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2 };
     }
+    if (name === "GARITA" && SC.garita) return { x: SC.garita.x, y: SC.garita.y };
     var p = SC.pois.filter(function (p) { return p.t === name; })[0];
     return p ? { x: p.x, y: p.y } : null;
   }
@@ -187,9 +188,14 @@
     var clip = el("clipPath", { id: "clip-predio" }, $("defs", svg));
     SC.site.forEach(function (pts) { el("polygon", { points: pts }, clip); });
     var gVerde = el("g", { "clip-path": "url(#clip-predio)" }, view);
+    // zonas comunes con su forma REAL del plano (tools/extraer_calles_sc.py): no se salen a calles ni lotes
+    var zonas = SC.zonas || [], conForma = {};
+    zonas.forEach(function (z) { el("polygon", { points: z.pts, class: "green green--zona" }, gVerde); conForma[z.t] = 1; });
+    var zonaPolys = zonas.map(function (z) { return parsePts(z.pts); });
     ["ECOPARQUE", "ZONA CONTEMPLACIÓN", "ZONA PICNIC", "ÁREA COMÚN", "LAGO 1", "LAGO 2"].forEach(function (n) {
+      if (conForma[n]) return;
       SC.pois.filter(function (p) { return p.t === n; }).forEach(function (p) {
-        el("path", { d: blob(p.x, p.y, n.indexOf("LAGO") === 0 ? 78 : 62, n.length), class: "green" }, gVerde);
+        el("path", { d: blob(p.x, p.y, n.indexOf("LAGO") === 0 ? 70 : 44, n.length), class: "green" }, gVerde);
       });
     });
     // 4) agua con reflejo y oleaje animado
@@ -204,17 +210,47 @@
     // 5) árboles de las zonas verdes internas (encima del pasto, debajo de los lotes)
     var gArb = el("g", {}, view), seed = 11;
     var rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    var lotPolys = lots.map(function (l) { return parsePts(l.pts); });
     ["ECOPARQUE", "ZONA CONTEMPLACIÓN", "ZONA PICNIC", "ÁREA COMÚN"].forEach(function (n) {
       SC.pois.filter(function (p) { return p.t === n; }).forEach(function (p) {
         for (var i = 0; i < 16; i++) {
-          var a = rnd() * 6.283, r = 10 + rnd() * 48, x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r * .75;
+          var a = rnd() * 6.283, r = 8 + rnd() * (conForma[n] ? 60 : 30), x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r * .75;
           var s = 12 + rnd() * 12;
-          if (!inAny(x, y, waterPolys)) el("use", { href: "#arbol", x: x - s / 2, y: y - s / 2, width: s, height: s }, gArb);
+          if (inAny(x, y, waterPolys) || inAny(x, y, lotPolys)) continue;
+          if (conForma[n] && !inAny(x, y, zonaPolys)) continue;
+          el("use", { href: "#arbol", x: x - s / 2, y: y - s / 2, width: s, height: s }, gArb);
         }
       });
     });
 
-    var gLots = el("g", {}, view), gNums = el("g", {}, view), gMz = el("g", {}, view), gPoi = el("g", {}, view);
+    // Ecoparque: 3 quioscos con techo de palma en línea recta, paralelos a la orilla del Lago 1,
+    // del lado de la Calle Germán Pineda (lejos del agua)
+    var eco = poiPos("ECOPARQUE"), lago1 = poiPos("LAGO 1"), ecoCorre = null;
+    if (eco && lago1) {
+      var lago = waterPolys.slice().sort(function (a, b) {
+        var ca = a.reduce(function (s, p) { return [s[0] + p[0] / a.length, s[1] + p[1] / a.length]; }, [0, 0]);
+        var cb = b.reduce(function (s, p) { return [s[0] + p[0] / b.length, s[1] + p[1] / b.length]; }, [0, 0]);
+        return Math.hypot(ca[0] - lago1.x, ca[1] - lago1.y) - Math.hypot(cb[0] - lago1.x, cb[1] - lago1.y);
+      })[0];
+      // dirección larga del lago (eje principal de sus puntos)
+      var mx = 0, my = 0; lago.forEach(function (p) { mx += p[0] / lago.length; my += p[1] / lago.length; });
+      var sxx = 0, syy = 0, sxy = 0; lago.forEach(function (p) { var a = p[0] - mx, b = p[1] - my; sxx += a * a; syy += b * b; sxy += a * b; });
+      var th = 0.5 * Math.atan2(2 * sxy, sxx - syy), ux = Math.cos(th), uy = Math.sin(th);
+      var nx = -uy, ny = ux;
+      if ((eco.x - mx) * nx + (eco.y - my) * ny < 0) { nx = -nx; ny = -ny; }   // la normal apunta hacia el ecoparque
+      var cx0 = eco.x + nx * 12, cy0 = eco.y + ny * 12;
+      [-1, 0, 1].forEach(function (k) {
+        el("use", { href: "#kiosco", x: cx0 + ux * k * 30 - 9, y: cy0 + uy * k * 30 - 9, width: 18, height: 18, class: "kiosco" }, gArb);
+      });
+      // el ícono del ecoparque va justo debajo de la fila de quioscos, sobre el pasto (así se ven los tres)
+      var abajo = uy >= 0 ? 1 : -1;
+      ecoCorre = { x: cx0 + ux * abajo * 62 - eco.x, y: cy0 + uy * abajo * 62 - eco.y };
+    }
+    var gLots = el("g", {}, view), gCalles = el("g", { class: "calles", "aria-hidden": "true" }, view), gNums = el("g", {}, view), gMz = el("g", {}, view), gPoi = el("g", {}, view);
+    // nombres de las calles, en el ángulo de cada calle (del plano del arquitecto)
+    (SC.calles || []).forEach(function (c) {
+      el("text", { x: c.x, y: c.y, class: "calle", "text-anchor": c.ancla || "start", transform: "rotate(" + c.a + " " + c.x + " " + c.y + ")" }, gCalles).textContent = c.t;
+    });
     var mz = {};
     lots.forEach(function (l) {
       var p = el("polygon", { points: l.pts, class: "lot " + l.estado, "data-id": l.id }, gLots);
@@ -235,9 +271,9 @@
     });
     // Íconos de amenidades: [clave, nombre, estado, ícono, desplazamiento x, desplazamiento y]
     var labels = [
-      ["LAGO 1", "Lago 1", "Proyectado", "ico-lago", 0, 0], ["LAGO 2", "Lago 2", "Proyectado", "ico-lago", 0, 0],
-      ["ECOPARQUE", "Ecoparque", "Proyectado", "ico-ecoparque", 64, 34], ["ZONA CONTEMPLACIÓN", "Contemplación", "Proyectado", "ico-contemplacion", -78, 0],
-      ["ZONA PICNIC", "Picnic", "Proyectado", "ico-picnic", -60, -34], ["GARITA", "Garita", "Proyectado", "ico-garita", -30, -30],
+      ["LAGO 1", "Lago 1", "Proyectado", "ico-lago", -40, 34], ["LAGO 2", "Lago 2", "Proyectado", "ico-lago", 15, 12],
+      ["ECOPARQUE", "Ecoparque", "Proyectado", "ico-ecoparque", 0, 0], ["ZONA CONTEMPLACIÓN", "Contemplación", "Proyectado", "ico-contemplacion", 0, 0],
+      ["ZONA PICNIC", "Picnic", "Proyectado", "ico-picnic", 0, 0], ["GARITA", "Garita", "Proyectado", "ico-garita", 0, 0],
       ["ÁREA COMÚN", "Área común", "Proyectado", "ico-comun", 0, 0], ["CIÉNAGA", "Ciénaga El Pelú", "Entorno natural", "ico-cienaga", 0, 0]
     ];
     var vistos = {};
@@ -245,6 +281,7 @@
       var p = poiPos(d[0]); if (!p || vistos[d[0]]) return;
       vistos[d[0]] = 1;
       var x = p.x + d[4], y = p.y + d[5];
+      if (d[0] === "ECOPARQUE" && ecoCorre) { x += ecoCorre.x; y += ecoCorre.y; }
       var g = el("g", { class: "poi" + (d[2] === "Entorno natural" ? " nat" : ""), "data-x": x, "data-y": y }, gPoi);
       el("circle", { r: 17, class: "poi__bg" }, g);
       el("use", { href: "#" + d[3], x: -10, y: -10, width: 20, height: 20, class: "poi__ico" }, g);
@@ -284,6 +321,7 @@
     return { x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w: w, h: h };
   }
   function apply() {
+    if (!(vb.w > 0 && vb.h > 0)) vb = fitVb();   // nunca un encuadre inválido
     svg.setAttribute("viewBox", vb.x + " " + vb.y + " " + vb.w + " " + vb.h);
     mapEl.classList.toggle("z2", vb.w < 760);
     mapEl.classList.toggle("z0", vb.w > 1250);
@@ -301,17 +339,22 @@
     var r = mapEl.getBoundingClientRect();
     return { x: vb.x + (clientX - r.left) / r.width * vb.w, y: vb.y + (clientY - r.top) / r.height * vb.h };
   }
+  var animando = 0;
   function animateTo(target) {
+    if (!(target.w > 0 && target.h > 0)) return;
     mapEl.dataset.moved = "1";
+    var yo = ++animando;   // una animación nueva cancela la anterior (p. ej. al tocar dos filtros seguidos)
     var from = Object.assign({}, vb), t0 = performance.now(), dur = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520;
     (function step(now) {
+      if (yo !== animando) return;
       var t = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - t, 3);
       ["x", "y", "w", "h"].forEach(function (k) { vb[k] = from[k] + (target[k] - from[k]) * e; });
       apply(); if (t < 1) requestAnimationFrame(step);
     })(t0);
   }
   function focusBox(b, minW) {
-    var a = ratio(), w = Math.max(b.w * 1.6, (b.h * 1.6) / a, minW || 380), h = w * a;
+    var a = ratio(), max = fitVb ? fitVb().w : Infinity;
+    var w = Math.min(max, Math.max(b.w * 1.3, (b.h * 1.3) / a, minW || 380)), h = w * a;
     animateTo({ x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w: w, h: h });
   }
   function lotBox(ls) {
@@ -356,6 +399,7 @@
       if (pointers.size === 1) { var p = Array.from(pointers.values())[0]; start = { x: p.x, y: p.y, vb: Object.assign({}, vb) }; }
       if (pointers.size === 0 && moved <= 5 && downTarget && downTarget.classList && downTarget.classList.contains("lot")) {
         var l = byId[downTarget.getAttribute("data-id")];
+        if (downTarget.classList.contains("is-dim")) l = null;   // tachado por el filtro: no se elige
         if (l && l.estado !== "tecnico") select(l, { from: "map" });
       }
     };
@@ -404,7 +448,7 @@
   function matches(l) {
     if (st.etapa && String(l.etapa) !== st.etapa) return false;
     if (st.area) { var r = st.area.split("-").map(Number); if (!(l.area >= r[0] && l.area <= r[1])) return false; }
-    if (st.ubic && l.ubic !== st.ubic) return false;
+    if (st.ubic && l.ubic !== st.ubic && !(/lago/i.test(st.ubic) && l.frente_lago)) return false;
     if (st.solo && l.estado !== "disponible") return false;
     return true;
   }
@@ -422,6 +466,7 @@
       });
     });
     $("[data-solo-disp]").addEventListener("change", function (e) { st.solo = e.target.checked; refresh(true); });
+    $("[data-limpiar]").addEventListener("click", limpiarFiltros);
     $("[data-sort]").addEventListener("change", function (e) { st.sort = e.target.value; st.shown = 0; st.limit = 24; lista(); });
     var tgl = $("[data-filters-toggle]"), bar = $("[data-toolbar]");
     tgl.addEventListener("click", function () { var o = !bar.classList.contains("is-open"); bar.classList.toggle("is-open", o); tgl.setAttribute("aria-expanded", o); });
@@ -441,14 +486,35 @@
     var hits = lots.filter(function (l) { return l.mz === pref || l.id.indexOf(pref + "-") === 0; });
     if (hits.length) { hits.forEach(function (l) { lotEls[l.id].classList.add("is-hit"); }); focusBox(lotBox(hits), 300); }
   }
+  function filtroActivo() { return !!(st.etapa || st.area || st.ubic || st.solo); }
+  function limpiarFiltros() {
+    st.etapa = st.area = st.ubic = ""; st.solo = false;
+    $$("[data-filter]").forEach(function (g) { $$("button", g).forEach(function (x) { x.setAttribute("aria-pressed", x.dataset.v === ""); }); });
+    $("[data-ubic]").value = ""; $("[data-solo-disp]").checked = false;
+    refresh(true);
+  }
   function refresh(user) {
-    var n = 0, nd = 0;
+    var n = 0, nd = 0, activo = filtroActivo(), hits = [];
     lots.forEach(function (l) {
       var ok = matches(l);
+      // lo que no cumple el filtro queda tachado en gris; lo que sí, resaltado
       lotEls[l.id].classList.toggle("is-dim", !ok);
-      if (ok) { n++; if (l.estado === "disponible") nd++; }
+      lotEls[l.id].classList.toggle("is-match", ok && activo);
+      if (numEls[l.id]) numEls[l.id].classList.toggle("is-dim", !ok);
+      if (ok) { n++; hits.push(l); if (l.estado === "disponible") nd++; }
     });
-    $("[data-count]").innerHTML = "<b>" + nd + "</b> disponibles";
+    mapEl.classList.toggle("filtrando", activo);
+    $("[data-limpiar]").hidden = !activo;
+    var vend = lots.filter(function (l) { return l.estado === "vendido" || l.estado === "reservado"; }).length;
+    var disp = lots.filter(function (l) { return l.estado === "disponible"; }).length;
+    $("[data-count]").innerHTML = activo
+      ? "<b>" + nd + "</b> disponibles con este filtro"
+      : "<b>" + disp + "</b> disponibles · <b class=\"vend\">" + vend + "</b> vendidos";
+    $$("[data-vivo-disp]").forEach(function (e) { e.textContent = disp; });
+    $$("[data-vivo-vend]").forEach(function (e) { e.textContent = vend; });
+    // al filtrar, el plano se acerca a los lotes que cumplen
+    if (user && activo && hits.length && hits.length < lots.length) focusBox(lotBox(hits), 420);
+    if (user && !activo && fitVb) animateTo(fitVb());
     $$("[data-count-n], [data-count-list]").forEach(function (el) { el.textContent = nd; });
     if (user) track("filter_lots", { etapa: st.etapa, area: st.area, ubic: st.ubic, solo: st.solo });
     st.limit = 24; st.shown = 0; lista();
@@ -539,12 +605,22 @@
       (l.etapa ? "<dt>Etapa</dt><dd>" + l.etapa + "</dd>" : "") +
       "<dt>Manzana</dt><dd>" + l.mz + "</dd><dt>Lote</dt><dd>" + l.n + "</dd>" +
       (l.area ? "<dt>Área</dt><dd>" + fmtN.format(l.area) + " m²</dd>" : "") +
+      medidasHTML(l) +
       (l.vm2 ? "<dt>Valor por m²</dt><dd>" + MO.pesos(l.vm2) + "</dd>" : "") +
       (l.ubic ? "<dt>Ubicación</dt><dd>" + l.ubic + "</dd>" : "") +
       (l.mat ? "<dt>Matrícula</dt><dd>" + l.mat + "</dd>" : "") +
       "</dl>";
   }
 
+  // Frente y fondo del plano del arquitecto; en lotes irregulares, la medida de cada lado
+  function medidasHTML(l) {
+    if (!l.frente) return "";
+    var m = function (v) { return fmtN.format(v) + " m"; };
+    return l.lados
+      ? "<dt>Medidas</dt><dd>Irregular: " + l.lados.map(function (v) { return fmtN.format(v); }).join(" · ") + " m</dd>"
+      : "<dt>Frente × fondo</dt><dd>" + m(l.frente) + " × " + m(l.fondo) + "</dd>";
+  }
+  window.MO_MEDIDAS = medidasHTML;
   function fichaDisponible(l, close) {
     var r = MO.reglaPlazo(l.area), opts = "", ct = MO.contado(l.precio);
     for (var m = r.min_months; m <= r.max_months; m++) opts += '<option value="' + m + '"' + (m === sim.meses ? " selected" : "") + ">" + m + " meses</option>";

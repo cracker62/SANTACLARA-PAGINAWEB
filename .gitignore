@@ -6,3 +6,8 @@ node_modules/
 # imágenes de control generadas por los scripts de tools/
 tools/debug_overlay.png
 tools/logo_capas_control.png
+
+# datos personales de clientes (cartera de Kelly): nunca se suben
+privado/
+__pycache__/
+ErrorReports/

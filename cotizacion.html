@@ -42,10 +42,11 @@
 
   /* ---------- la hoja ---------- */
   .hoja{max-width:920px;margin:18px auto 40px;background:#fff;padding:0 0 22px;box-shadow:0 18px 50px -24px rgba(27,42,69,.5)}
-  .cab{background:var(--marino);color:#fff;padding:20px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:3px solid var(--sol)}
+  .cab{background:#fff;color:var(--marino);padding:18px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:4px solid var(--sol)}
   .cab__t{display:flex;flex-direction:column;gap:3px}
   .cab .kicker{font-size:11.5px;font-weight:700;letter-spacing:.22em;color:var(--sol)}
-  .cab .fecha{font-size:12px;color:rgba(255,255,255,.75)}
+  .cab .fecha{font-size:12px;color:#1B2A45;font-weight:600}
+  .cab .vigencia{display:inline-block;margin-top:4px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#1B2A45;background:#F4C24A;border-radius:999px;padding:3px 10px}
   .cab img{height:62px;width:auto}
   .cliente{background:var(--arena);border-bottom:1px solid var(--linea);padding:11px 30px;font-size:13px;display:flex;flex-wrap:wrap;gap:20px}
   .cliente b{font-weight:700}
@@ -66,9 +67,9 @@
   .campo dd{margin:0;font-size:15px;font-weight:600;letter-spacing:0;white-space:nowrap}
   .campo--ancho{grid-column:1 / -1}
 
-  .total{margin-top:14px;background:var(--marino);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-radius:2px}
+  .total{margin-top:14px;background:#0C0B09;color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-radius:4px;border:1px solid #C9A052}
   .total span{font-size:13px;font-weight:600}
-  .total b{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0}
+  .total b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:0;color:#F2CE74;text-shadow:0 0 12px rgba(242,206,116,.55)}
 
   .pago{list-style:none;margin:0;padding:0}
   .pago li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid var(--arena-2);font-size:13.5px}
@@ -86,10 +87,10 @@
   .es-contado .hero-cuota{background:#1F7A4D}
 
   /* la cuota mensual es lo que el cliente busca: va en verde y grande */
-  .hero-cuota{background:var(--verde);color:#fff;padding:15px 16px;display:grid;gap:2px;border-bottom:1px solid var(--linea)}
-  .hero-cuota .et{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82)}
+  .hero-cuota{background:#1F7A4D;color:#fff;padding:15px 16px;display:grid;gap:2px;border-bottom:1px solid var(--linea)}
+  .hero-cuota .et{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff}
   .hero-cuota b{font-size:30px;font-weight:700;line-height:1.05;letter-spacing:0;font-variant-numeric:tabular-nums}
-  .hero-cuota .nota{font-size:12px;color:rgba(255,255,255,.88)}
+  .hero-cuota .nota{font-size:12px;color:#fff}
 
   /* plano */
   .plano{margin-top:18px;break-inside:avoid}
@@ -128,6 +129,7 @@
 
   /* ---------- impresión: una hoja A4 limpia ---------- */
   @page{size:A4;margin:10mm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @media print{
     body{background:#fff;font-size:10.5px}
     .barra,.ayuda{display:none !important}
@@ -200,8 +202,9 @@
     <div class="cab__t">
       <span class="kicker">COTIZACIÓN COMERCIAL</span>
       <span class="fecha" data-fecha></span>
+      <span class="vigencia" data-vigencia></span>
     </div>
-    <img src="assets/img/santa-clara-logo-blanco.png" alt="Santa Clara · Poblado Campestre">
+    <img src="assets/img/santa-clara-logo.png" alt="Santa Clara · Poblado Campestre">
   </header>
 
   <div class="cliente" data-cliente hidden>
@@ -222,6 +225,7 @@
             <div class="campo"><dt>Manzana</dt><dd data-d-mz></dd></div>
             <div class="campo"><dt>Lote</dt><dd data-d-lote></dd></div>
             <div class="campo"><dt>Área</dt><dd data-d-area></dd></div>
+            <div class="campo" data-d-medidas-caja hidden><dt data-d-medidas-t>Frente × fondo</dt><dd data-d-medidas></dd></div>
             <div class="campo"><dt>Valor por m²</dt><dd data-d-vm2></dd></div>
             <div class="campo"><dt>Ubicación</dt><dd data-d-ubic></dd></div>
             <div class="campo campo--ancho"><dt>Matrícula inmobiliaria</dt><dd data-d-mat></dd></div>
@@ -275,13 +279,13 @@
   <p><a href="./#lotes">Ver el plano de lotes →</a></p>
 </div>
 
-<script src="data/config.js?v=13"></script>
-<script src="data/santa-clara.js?v=11"></script>
+<script src="data/config.js?v=14"></script>
+<script src="data/santa-clara.js?v=14"></script>
 <script src="api/inventario"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=19" defer=""></script>
+<script src="assets/js/cotizacion.js?v=20" defer=""></script>
 </body>
 </html>

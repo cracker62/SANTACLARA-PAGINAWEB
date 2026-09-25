@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap">
 <link rel="stylesheet" href="assets/css/estilos.css?v=13">
-<link rel="stylesheet" href="assets/css/santa-clara.css?v=16">
+<link rel="stylesheet" href="assets/css/santa-clara.css?v=19">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Place","name":"Santa Clara · Poblado Campestre","address":{"@type":"PostalAddress","addressLocality":"Palmar de Varela","addressRegion":"Atlántico","addressCountry":"CO"},"geo":{"@type":"GeoCoordinates","latitude":10.6997354,"longitude":-74.8061069}}
 </script>
@@ -143,6 +143,7 @@
           <select class="select" data-ubic aria-label="Ubicación del lote"><option value="">Todas</option></select>
         </div>
         <label class="switch"><input type="checkbox" data-solo-disp> Solo disponibles</label>
+        <button type="button" class="chip chip--limpiar" data-limpiar hidden>Quitar filtros ✕</button>
         <span class="count" data-count aria-live="polite"></span>
       </div>
     </div>
@@ -152,6 +153,10 @@
         <svg data-svg role="application" aria-label="Plano interactivo de Santa Clara. Usa los botones para acercar o alejar.">
           <defs>
             <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#E7E8E1"/><rect width="3" height="6" fill="#C9CBC0"/></pattern>
+            <!-- lotes que no cumplen el filtro: tachados en gris -->
+            <pattern id="tachado" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#F4D6CF"/><rect width="2.4" height="7" fill="#C0392B"/></pattern>
+            <!-- quiosco con techo de palma visto desde arriba -->
+            <symbol id="kiosco" viewBox="0 0 20 20"><circle cx="10" cy="10.6" r="9.2" fill="rgba(0,0,0,.22)"/><circle cx="10" cy="10" r="9" fill="#C99A55" stroke="#8A6330" stroke-width=".8"/><g stroke="#8A6330" stroke-width=".7"><path d="M10 1v18M1 10h18M3.6 3.6l12.8 12.8M16.4 3.6 3.6 16.4"/></g><circle cx="10" cy="10" r="5.6" fill="none" stroke="#A97B3E" stroke-width=".8"/><circle cx="10" cy="10" r="1.8" fill="#6E4C22"/></symbol>
             <linearGradient id="agua" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#5FA8C9"/><stop offset=".55" stop-color="#2F7FA8"/><stop offset="1" stop-color="#1E5F86"/>
             </linearGradient>
@@ -329,14 +334,14 @@
   <a class="btn btn--wa" data-wa="Hola, quiero información sobre Santa Clara – Poblado Campestre.">WhatsApp</a>
 </div>
 
-<script src="data/config.js?v=13"></script>
+<script src="data/config.js?v=14"></script>
 <script src="data/faq.js?v=10"></script>
-<script src="data/santa-clara.js?v=11"></script>
+<script src="data/santa-clara.js?v=14"></script>
 <script src="api/inventario"></script>
 <script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
 <script src="assets/js/animaciones.js?v=10"></script>
 <script src="assets/js/olimpo.js?v=15"></script>
-<script src="assets/js/explorador.js?v=20"></script>
+<script src="assets/js/explorador.js?v=31"></script>
 </body>
 </html>
