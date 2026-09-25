@@ -333,16 +333,17 @@
     g("ellipse", { cx: 3, cy: 3.5, rx: 9.5, ry: 8, fill: "#1E2D14", opacity: ".28" }, arbol);
     g("path", { d: "M0-10 6-8 10-3 9 4 4 9-3 9-8 5-10-1-7-7Z", fill: "url(#cot-copa)" }, arbol);
 
-    var sitePolys = SC.site.map(TR.parsePts), waterPolys = SC.water.map(TR.parsePts);
+    var predio = SC.site.concat(SC.vias || []);
+    var sitePolys = predio.map(TR.parsePts), waterPolys = SC.water.map(TR.parsePts);
 
     // 1) terreno pintado (pasto, cultivos, doble calzada y arboleda)
     var terreno = g("image", { x: T.x, y: T.y, width: T.w, height: T.h, preserveAspectRatio: "none" });
     TR.pintar(sitePolys, waterPolys, function (url) { terreno.setAttribute("href", url); });
 
     // 2) predio y zonas verdes del proyecto
-    SC.site.forEach(function (pts) { g("polygon", { points: pts, fill: "#E6DCC3", stroke: "#C9B892", "stroke-width": 2 }); });
+    predio.forEach(function (pts) { g("polygon", { points: pts, fill: "#E6DCC3", stroke: "#C9B892", "stroke-width": 2 }); });
     var clip = g("clipPath", { id: "cot-predio" }, defs);
-    SC.site.forEach(function (pts) { g("polygon", { points: pts }, clip); });
+    predio.forEach(function (pts) { g("polygon", { points: pts }, clip); });
     var gVerde = g("g", { "clip-path": "url(#cot-predio)" });
     ["ECOPARQUE", "ZONA CONTEMPLACIÓN", "ZONA PICNIC", "ÁREA COMÚN", "LAGO 1", "LAGO 2"].forEach(function (n) {
       (SC.pois || []).filter(function (p) { return p.t === n; }).forEach(function (p) {

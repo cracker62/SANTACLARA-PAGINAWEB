@@ -579,3 +579,8 @@
 .pill--med{background:#1B2A45;border-color:#1B2A45;color:#fff;text-transform:none;letter-spacing:.02em}
 .med-linea{margin:-8px 0 0;font-size:13.5px;color:var(--sc-tinta-2)}
 .med-linea b{color:var(--sc-marino)}
+
+/* Contador de disponibles y vendidos, junto a "Solo disponibles" y bien visible */
+.toolbar .count{margin-left:0;font-size:13.5px;background:#F3F6EE;border:1px solid #D9E4CB;border-radius:999px;padding:6px 12px}
+.toolbar .count b{font-size:14.5px}
+.chip--limpiar{margin-left:auto}

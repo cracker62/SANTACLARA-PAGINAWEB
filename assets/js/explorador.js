@@ -178,15 +178,16 @@
 
   function buildMap() {
     mapEl = $("[data-map]"); svg = $("[data-svg]"); view = $("[data-view]"); tip = $("[data-tip]");
-    var sitePolys = SC.site.map(parsePts), waterPolys = SC.water.map(parsePts);
+    var predio = SC.site.concat(SC.vias || []);   // vías agregadas desde el plano (Calle Germán Pineda)
+    var sitePolys = predio.map(parsePts), waterPolys = SC.water.map(parsePts);
     // 1) terreno: pasto, cultivos, vía y árboles pintados en un lienzo (una sola imagen, rápida al mover el mapa)
     var terreno = el("image", { x: T.x, y: T.y, width: T.w, height: T.h, preserveAspectRatio: "none" }, view);
     pintarTerreno(sitePolys, waterPolys, function (url) { terreno.setAttribute("href", url); });
     // 2) predio: vías internas en afirmado
-    SC.site.forEach(function (pts) { el("polygon", { points: pts, class: "site" }, view); });
+    predio.forEach(function (pts) { el("polygon", { points: pts, class: "site" }, view); });
     // 3) zonas verdes del proyecto alrededor de lagos, ecoparque y áreas comunes (recortadas al predio)
     var clip = el("clipPath", { id: "clip-predio" }, $("defs", svg));
-    SC.site.forEach(function (pts) { el("polygon", { points: pts }, clip); });
+    predio.forEach(function (pts) { el("polygon", { points: pts }, clip); });
     var gVerde = el("g", { "clip-path": "url(#clip-predio)" }, view);
     // zonas comunes con su forma REAL del plano (tools/extraer_calles_sc.py): no se salen a calles ni lotes
     var zonas = SC.zonas || [], conForma = {};
@@ -223,10 +224,36 @@
       });
     });
 
-    // Ecoparque: 3 quioscos con techo de palma en línea recta, paralelos a la orilla del Lago 1,
-    // del lado de la Calle Germán Pineda (lejos del agua)
+    // Ecoparque: 3 quioscos (casas de palma) en línea recta DENTRO del ecoparque, a lo largo de la franja
     var eco = poiPos("ECOPARQUE"), lago1 = poiPos("LAGO 1"), ecoCorre = null;
-    if (eco && lago1) {
+    var zonaEco = (SC.zonas || []).filter(function (z) { return z.t === "ECOPARQUE"; })[0];
+    if (zonaEco) {
+      var ze = parsePts(zonaEco.pts), zx = 0, zy = 0;
+      ze.forEach(function (p) { zx += p[0] / ze.length; zy += p[1] / ze.length; });
+      var qxx = 0, qyy = 0, qxy = 0; ze.forEach(function (p) { var a = p[0] - zx, b = p[1] - zy; qxx += a * a; qyy += b * b; qxy += a * b; });
+      var tz = 0.5 * Math.atan2(2 * qxy, qxx - qyy), vx = Math.cos(tz), vy = Math.sin(tz);
+      if (vy < 0) { vx = -vx; vy = -vy; }   // el eje apunta hacia el sur
+      var giro = tz * 180 / Math.PI;
+      // normal que apunta del lago hacia la calle (los quioscos van del lado de la calle, entre los árboles)
+      var lx = 0, ly = 0, lg = waterPolys.slice().sort(function (a, b) {
+        var da = Math.hypot(a[0][0] - zx, a[0][1] - zy), db = Math.hypot(b[0][0] - zx, b[0][1] - zy); return da - db; })[0];
+      lg.forEach(function (p) { lx += p[0] / lg.length; ly += p[1] / lg.length; });
+      var wx = -vy, wy = vx; if ((zx - lx) * wx + (zy - ly) * wy < 0) { wx = -wx; wy = -wy; }
+      // fila recta, con buena separación, corrida hacia la calle y hacia el sur (donde Juan los marcó)
+      var paso = 30, lado = 9, baja = 14;
+      var pos = function (k) { return [zx + vx * (baja + k * paso) + wx * lado, zy + vy * (baja + k * paso) + wy * lado]; };
+      var dentro = function () { return [-1, 0, 1].every(function (k) { var q = pos(k); return inAny(q[0], q[1], [ze]); }); };
+      while (!dentro() && lado > 0) lado -= 1;
+      while (!dentro() && baja > 0) baja -= 2;
+      while (!dentro() && paso > 16) paso -= 2;
+      [-1, 0, 1].forEach(function (k) {
+        var q = pos(k);
+        el("use", { href: "#kiosco", x: q[0] - 9, y: q[1] - 7.5, width: 18, height: 15, class: "kiosco", transform: "rotate(" + giro.toFixed(1) + " " + q[0].toFixed(1) + " " + q[1].toFixed(1) + ")" }, gArb);
+      });
+      // el ícono "Quioscos" va justo encima de la fila (hacia el norte), donde hay espacio libre
+      var ic = pos(-2.7);
+      ecoCorre = { x: ic[0] - eco.x, y: ic[1] - eco.y };
+    } else if (eco && lago1) {
       var lago = waterPolys.slice().sort(function (a, b) {
         var ca = a.reduce(function (s, p) { return [s[0] + p[0] / a.length, s[1] + p[1] / a.length]; }, [0, 0]);
         var cb = b.reduce(function (s, p) { return [s[0] + p[0] / b.length, s[1] + p[1] / b.length]; }, [0, 0]);
@@ -271,8 +298,8 @@
     });
     // Íconos de amenidades: [clave, nombre, estado, ícono, desplazamiento x, desplazamiento y]
     var labels = [
-      ["LAGO 1", "Lago 1", "Proyectado", "ico-lago", -40, 34], ["LAGO 2", "Lago 2", "Proyectado", "ico-lago", 15, 12],
-      ["ECOPARQUE", "Ecoparque", "Proyectado", "ico-ecoparque", 0, 0], ["ZONA CONTEMPLACIÓN", "Contemplación", "Proyectado", "ico-contemplacion", 0, 0],
+      ["LAGO 1", "Lago 1", "Proyectado", "ico-lago", 0, 0], ["LAGO 2", "Lago 2", "Proyectado", "ico-lago", 0, -6],
+      ["ECOPARQUE", "Quioscos", "Proyectado", "ico-quiosco", 0, 0], ["ZONA CONTEMPLACIÓN", "Contemplación", "Proyectado", "ico-contemplacion", 0, 0],
       ["ZONA PICNIC", "Picnic", "Proyectado", "ico-picnic", 0, 0], ["GARITA", "Garita", "Proyectado", "ico-garita", 0, 0],
       ["ÁREA COMÚN", "Área común", "Proyectado", "ico-comun", 0, 0], ["CIÉNAGA", "Ciénaga El Pelú", "Entorno natural", "ico-cienaga", 0, 0]
     ];
@@ -283,6 +310,7 @@
       var x = p.x + d[4], y = p.y + d[5];
       if (d[0] === "ECOPARQUE" && ecoCorre) { x += ecoCorre.x; y += ecoCorre.y; }
       var g = el("g", { class: "poi" + (d[2] === "Entorno natural" ? " nat" : ""), "data-x": x, "data-y": y }, gPoi);
+      if (d[0] === "ZONA PICNIC") g.dataset.chico = "1";
       el("circle", { r: 17, class: "poi__bg" }, g);
       el("use", { href: "#" + d[3], x: -10, y: -10, width: 20, height: 20, class: "poi__ico" }, g);
       el("text", { y: 32, class: "t" }, g).textContent = d[1];
@@ -327,7 +355,10 @@
     mapEl.classList.toggle("z0", vb.w > 1250);
     // las insignias mantienen un tamaño legible en pantalla
     var px = mapEl.getBoundingClientRect().width || 800, s = Math.max(1.05, Math.min(2.2, (vb.w / px) * .8));
-    badges.forEach(function (g) { g.setAttribute("transform", "translate(" + g.dataset.x + " " + g.dataset.y + ") scale(" + s + ")"); });
+    badges.forEach(function (g) {
+      var k = g.classList.contains("poi") ? (g.dataset.chico ? .5 : .62) : 1;   // amenidades más pequeñas; el picnic aún más
+      g.setAttribute("transform", "translate(" + g.dataset.x + " " + g.dataset.y + ") scale(" + (s * k).toFixed(3) + ")");
+    });
   }
   function zoomAt(factor, cx, cy) {
     var maxW = fitVb().w * 1.3, minW = 160;
@@ -447,6 +478,7 @@
     return id;
   }
   function matches(l) {
+    if ((st.etapa || st.area || st.ubic || st.solo) && l.estado !== "disponible") return false;
     if (st.etapa && String(l.etapa) !== st.etapa) return false;
     if (st.area) { var r = st.area.split("-").map(Number); if (!(l.area >= r[0] && l.area <= r[1])) return false; }
     if (st.ubic && l.ubic !== st.ubic && !(/lago/i.test(st.ubic) && l.frente_lago)) return false;
