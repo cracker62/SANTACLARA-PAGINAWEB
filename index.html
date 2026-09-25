@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap">
 <link rel="stylesheet" href="assets/css/estilos.css?v=13">
-<link rel="stylesheet" href="assets/css/santa-clara.css?v=22">
+<link rel="stylesheet" href="assets/css/santa-clara.css?v=25">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Place","name":"Santa Clara · Poblado Campestre","address":{"@type":"PostalAddress","addressLocality":"Palmar de Varela","addressRegion":"Atlántico","addressCountry":"CO"},"geo":{"@type":"GeoCoordinates","latitude":10.6997354,"longitude":-74.8061069}}
 </script>
@@ -190,11 +190,18 @@
           <button type="button" data-zoom="reset" aria-label="Ver todo el plano"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4"/></svg></button>
         </div>
         <span class="map-hint">Toca un lote para ver su precio y tu cuota</span>
+        <!-- Mi selección: aparece cuando el cliente agrega uno o más lotes -->
+        <button type="button" class="sel-barra" data-sel-barra hidden>
+          <span class="sel-barra__ic" aria-hidden="true">＋</span>
+          <span class="sel-barra__t"><b>Mi selección: <span data-sel-n></span> · <span data-sel-total></span></b><small data-sel-pista></small></span>
+          <span class="sel-barra__ir">Ver y cotizar →</span>
+        </button>
         <div class="tip" data-tip hidden></div>
       </div>
 
       <aside class="panel" data-panel aria-label="Lotes y detalle del lote">
         <div class="panel__scroll" data-panel-scroll>
+          <div class="sel-view" data-sel-view hidden></div>
           <div class="list-view" data-list-view>
             <div class="list-top">
               <h3><span data-count-list>—</span> lotes disponibles</h3>
@@ -344,6 +351,6 @@
 <script src="assets/js/terreno.js?v=10"></script>
 <script src="assets/js/animaciones.js?v=10"></script>
 <script src="assets/js/olimpo.js?v=15"></script>
-<script src="assets/js/explorador.js?v=36"></script>
+<script src="assets/js/explorador.js?v=38"></script>
 </body>
 </html>

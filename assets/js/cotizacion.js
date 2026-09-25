@@ -4,6 +4,8 @@
  * (el navegador la guarda como PDF). Nada se inventa: todo sale de data/santa-clara.js,
  * del inventario en vivo y de las condiciones de data/config.js.
  * Se abre como cotizacion.html?lote=G-12&pct=20&meses=24&nombre=...&wa=...
+ * Con ?lotes=G-12,G-13 la arma assets/js/cotizacion-varios.js (una hoja por lote + hoja unificada),
+ * que carga esta misma página con &embebido=1 para cada lote y le pide su imagen con MO_cotizacion.lienzo().
  */
 (function () {
   var SC = window.SANTA_CLARA, CFG = window.MO_CONFIG, F = CFG.financiacion;
@@ -15,6 +17,8 @@
   var NS = "http://www.w3.org/2000/svg";
 
   var q = new URLSearchParams(location.search);
+  if (q.get("lotes")) return;   // varios lotes: lo maneja cotizacion-varios.js
+  if (q.get("embebido") === "1") document.documentElement.classList.add("embebido");
   var id = (q.get("lote") || "").toUpperCase().trim();
   var lote = (SC && SC.lots || []).filter(function (l) { return l.id === id; })[0];
 
@@ -221,8 +225,10 @@
     }).catch(function () { return null; });
   }
 
-  function armarPDF() {
-    if (!window.html2canvas || !window.jspdf) return Promise.reject(new Error("sin librerías"));
+  /* La hoja como imagen (lienzo), siempre con el diseño de computador. La usa el PDF de un lote
+     y también la cotización de varios lotes, que la pide a cada hoja embebida. */
+  function armarLienzo() {
+    if (!window.html2canvas) return Promise.reject(new Error("sin librerías"));
     var hoja = $("[data-hoja]"), cajaPlano = $("[data-plano]"), svg = $("[data-plano] svg"), sustituto = null;
     return planoComoImagen().then(function (p) {
       if (p && svg) {
@@ -247,15 +253,23 @@
       });
     }).then(function (lienzo) {
       if (sustituto && svg) cajaPlano.replaceChild(svg, sustituto);
+      return lienzo;
+    }).catch(function (e) {
+      if (sustituto && svg && sustituto.parentNode) cajaPlano.replaceChild(svg, sustituto);
+      throw e;
+    });
+  }
+  window.MO_cotizacion = { lienzo: armarLienzo };
+
+  function armarPDF() {
+    if (!window.jspdf) return Promise.reject(new Error("sin librerías"));
+    return armarLienzo().then(function (lienzo) {
       var pdf = new window.jspdf.jsPDF({ orientation: "p", unit: "pt", format: "a4" });
       var ancho = 595.28, alto = 841.89, margen = 18;
       var w = ancho - margen * 2, h = lienzo.height * w / lienzo.width;
       if (h > alto - margen * 2) { h = alto - margen * 2; w = lienzo.width * h / lienzo.height; }
       pdf.addImage(lienzo.toDataURL("image/jpeg", 0.92), "JPEG", (ancho - w) / 2, margen, w, h);
       return pdf.output("blob");
-    }).catch(function (e) {
-      if (sustituto && svg && sustituto.parentNode) cajaPlano.replaceChild(svg, sustituto);
-      throw e;
     });
   }
 

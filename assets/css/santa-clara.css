@@ -584,3 +584,37 @@
 .toolbar .count{margin-left:0;font-size:13.5px;background:#F3F6EE;border:1px solid #D9E4CB;border-radius:999px;padding:6px 12px}
 .toolbar .count b{font-size:14.5px}
 .chip--limpiar{margin-left:auto}
+
+/* ---------- Mi selección: cotizar dos o más lotes ---------- */
+.btn--sel{width:100%;min-height:50px;border:2px dashed var(--sc-lago);background:#EEF5FB;color:var(--sc-marino);font-weight:700;display:grid;place-items:center;gap:0;line-height:1.25;padding:8px 12px;cursor:pointer;border-radius:999px}
+.btn--sel small{font-size:12px;font-weight:600;color:var(--sc-tinta-2)}
+.btn--sel.is-on{border-style:solid;border-color:#2E7D4F;background:#E5F2EA;color:#1F5E3A}
+.sel-mas{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sel-mas .btn{font-size:13.5px;min-height:44px;white-space:normal;text-align:center;padding:6px 10px}
+.map .lot.is-pick{stroke:#1670B8;stroke-width:3.4;stroke-dasharray:none}
+.map .lot.is-pick.disponible{fill:#9FD0F2}
+.map-hint.is-aviso{background:#1670B8;color:#fff;font-weight:700}
+.sel-barra{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:12px;max-width:calc(100% - 24px);padding:10px 16px 10px 10px;border:0;border-radius:999px;background:#1B2A45;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 12px 30px -10px rgba(27,42,69,.55)}
+.sel-barra:hover{background:#22345A}
+.sel-barra__ic{width:34px;height:34px;flex:none;border-radius:50%;background:#F4A62A;color:#1B2A45;display:grid;place-items:center;font-weight:800;font-size:18px}
+.sel-barra__t{display:grid;line-height:1.25;min-width:0}
+.sel-barra__t b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-barra__t small{font-size:12px;color:#C8D2E4}
+.sel-barra__ir{font-size:13px;font-weight:700;color:#F4C24A;white-space:nowrap}
+@media (max-width:520px){.sel-barra__ir{display:none}}
+.sel-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--sc-linea)}
+.sel-lista li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--sc-linea)}
+.sel-ir{all:unset;cursor:pointer;display:grid;gap:2px;min-width:0}
+.sel-ir b{font-family:var(--display);font-size:18px;color:var(--sc-marino)}
+.sel-ir span{font-size:12.5px;color:var(--sc-tinta-2)}
+.sel-ir:focus-visible{outline:2px solid var(--sc-lago);outline-offset:2px}
+.sel-lista strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.sel-quitar{width:30px;height:30px;border-radius:50%;border:1px solid var(--sc-linea);background:#fff;color:#8C3A22;cursor:pointer}
+.sel-totales dd{font-weight:800}
+.sel-vaciar{all:unset;cursor:pointer;justify-self:center;font-size:12.5px;color:var(--sc-tinta-2);text-decoration:underline;padding:4px}
+.sel-zona{display:grid;gap:8px}
+.sel-totales{grid-template-columns:minmax(0,1fr) auto}
+.sel-totales dd{white-space:nowrap;overflow-wrap:normal}
+.sel-mas .btn{white-space:nowrap;font-size:13px;padding:6px 8px}
+.sel-barra{left:auto;right:14px;transform:none;max-width:min(460px,calc(100% - 28px))}
+@media (max-width:700px){.sel-barra{right:12px;left:12px;max-width:none;bottom:58px}}

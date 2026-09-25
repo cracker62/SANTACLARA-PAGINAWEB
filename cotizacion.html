@@ -131,6 +131,32 @@
     .aviso,.pie{margin-left:18px;margin-right:18px}
   }
 
+  /* ---------- hoja embebida (cotización de varios lotes): solo la hoja ---------- */
+  .embebido body{background:#fff}
+  .embebido .barra,.embebido .ayuda{display:none !important}
+  .embebido .hoja{margin:0 auto;box-shadow:none}
+
+  /* ---------- varios lotes: hoja unificada + una hoja por lote ---------- */
+  .varios{max-width:920px;margin:0 auto 40px;display:grid;gap:22px}
+  .varios__et{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta-2);margin:4px 16px 0}
+  .hoja-lote{width:100%;border:0;display:block;background:#fff;box-shadow:0 18px 50px -24px rgba(27,42,69,.5);min-height:600px}
+  .resumen-tabla{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .resumen-tabla th{background:var(--marino);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:8px 10px;text-align:left}
+  .resumen-tabla th.n,.resumen-tabla td.n{text-align:right}
+  .resumen-tabla td{padding:9px 10px;border-bottom:1px solid var(--arena-2);color:var(--tinta)}
+  .resumen-tabla td b{font-size:14px}
+  .resumen-tabla tfoot td{background:#0C0B09;color:#fff;font-weight:700;border:0}
+  .resumen-tabla tfoot td.n b{color:#F2CE74;font-size:16px}
+  .resumen-caja{overflow-x:auto}
+  .resumen-nota{margin:12px 0 0;font-size:12.5px;color:var(--tinta-2)}
+  .resumen-par{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+  .resumen-par div{border:1px solid var(--linea);border-radius:6px;padding:12px 14px;display:grid;gap:2px}
+  .resumen-par span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-2)}
+  .resumen-par b{font-size:19px;font-variant-numeric:tabular-nums}
+  .resumen-par .verde{background:#1F7A4D;border-color:#1F7A4D}
+  .resumen-par .verde span,.resumen-par .verde b{color:#fff}
+  @media screen and (max-width:760px){.resumen-par{grid-template-columns:1fr}}
+
   /* ---------- impresión: una hoja A4 limpia ---------- */
   @page{size:A4;margin:10mm}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -277,6 +303,9 @@
   </div>
 </main>
 
+<!-- varios lotes: la hoja unificada y una hoja por lote (las arma cotizacion-varios.js) -->
+<div class="varios" data-varios hidden></div>
+
 <div class="error" data-error hidden>
   <h1>No encontramos ese lote</h1>
   <p>Vuelve al plano y toca el lote que te interesa para generar su cotización.</p>
@@ -290,6 +319,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=23" defer=""></script>
+<script src="assets/js/cotizacion.js?v=24" defer=""></script>
+<script src="assets/js/cotizacion-varios.js?v=1" defer=""></script>
 </body>
 </html>

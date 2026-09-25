@@ -57,7 +57,7 @@
           });
           if (!hay) return;
           disponibles = lots.filter(function (l) { return l.estado === "disponible"; });
-          stats(); refresh(false);
+          stats(); refresh(false); pintarSeleccion();
           if (current && cambiados[current.id]) renderFicha();
           track("inventario_actualizado", { lotes: Object.keys(cambiados).join(",") });
         })
@@ -616,9 +616,104 @@
   }
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && current) closeFicha(); });
 
+  /* ------------------------------------------------------------------ mi selección (varios lotes)
+     El cliente puede sumar dos o más lotes, ver el total unificado, cotizarlos en un solo PDF
+     (una hoja por lote más una hoja que los une) y avisarle al asesor que está interesado. */
+  var seleccion = [];
+  try { seleccion = JSON.parse(localStorage.getItem("sc-seleccion") || "[]").filter(function (id) { return byId[id]; }); } catch (e) {}
+  var enSeleccion = function (id) { return seleccion.indexOf(id) >= 0; };
+  function guardarSeleccion() { try { localStorage.setItem("sc-seleccion", JSON.stringify(seleccion)); } catch (e) {} }
+  function alternarSeleccion(id) {
+    var i = seleccion.indexOf(id);
+    if (i >= 0) seleccion.splice(i, 1); else seleccion.push(id);
+    guardarSeleccion(); pintarSeleccion();
+    track(i >= 0 ? "seleccion_quitar" : "seleccion_agregar", { lote: id, total: seleccion.length });
+  }
+  function lotesSeleccion() { return seleccion.map(function (id) { return byId[id]; }).filter(Boolean); }
+  function pintarSeleccion() {
+    lots.forEach(function (l) { if (lotEls[l.id]) lotEls[l.id].classList.toggle("is-pick", enSeleccion(l.id)); });
+    var ls = lotesSeleccion(), barra = $("[data-sel-barra]");
+    if (!barra) return;
+    var disp = ls.filter(function (l) { return l.estado === "disponible"; });
+    var total = disp.reduce(function (s, l) { return s + l.precio; }, 0);
+    barra.hidden = !ls.length;
+    $("[data-sel-n]", barra).textContent = ls.length + (ls.length === 1 ? " lote" : " lotes");
+    $("[data-sel-total]", barra).textContent = MO.pesos(total);
+    $("[data-sel-pista]", barra).textContent = ls.length === 1 ? "Agrega otro lote para cotizarlos juntos" : "Toca para ver el total y cotizarlos";
+    if (!$("[data-sel-view]").hidden) verSeleccion();
+  }
+  function mensajeSeleccion(ls) {
+    var total = 0, area = 0;
+    var filas = ls.map(function (l) {
+      total += l.precio; area += l.area;
+      return "• " + l.id + " (" + nombreLote(l) + ") · " + fmtN.format(l.area) + " m²" + (l.frente && !l.lados ? " · " + fmtN.format(l.frente) + " × " + fmtN.format(l.fondo) + " m" : "") + " · " + MO.pesos(l.precio);
+    });
+    var ct = F.contado && F.contado.descuento_pct ? total * (1 - F.contado.descuento_pct / 100) : null;
+    return "Hola, estoy interesado en estos " + ls.length + " lotes de Santa Clara y quiero cotizarlos:\n\n" + filas.join("\n") +
+      "\n\nTotal: " + ls.length + " lotes · " + fmtN.format(area) + " m² · " + MO.pesos(total) +
+      (ct ? "\nDe contado (" + fmtPct(F.contado.descuento_pct) + "% de descuento): " + MO.pesos(ct) : "") +
+      "\n\nQuiero que me llamen para darme más información.";
+  }
+  function verSeleccion() {
+    var ls = lotesSeleccion(), box = $("[data-sel-view]"), panel = $("[data-panel]");
+    if (current) { lotEls[current.id].classList.remove("is-sel"); current = null; }
+    $("[data-list-view]").hidden = true; $("[data-ficha]").hidden = true; box.hidden = false;
+    if (isMobile()) {
+      panel.classList.add("has-lot"); document.body.classList.add("sheet-open");
+      if (!backdrop) { backdrop = document.createElement("div"); backdrop.className = "sheet-backdrop"; backdrop.addEventListener("click", cerrarSeleccion); document.body.appendChild(backdrop); }
+    }
+    var disp = ls.filter(function (l) { return l.estado === "disponible"; }), fuera = ls.filter(function (l) { return l.estado !== "disponible"; });
+    var total = disp.reduce(function (s, l) { return s + l.precio; }, 0), area = disp.reduce(function (s, l) { return s + l.area; }, 0);
+    var cuotas = disp.reduce(function (s, l) { return s + cuotaDesde(l); }, 0);
+    var pct = F.contado && F.contado.descuento_pct;
+    box.innerHTML = '<div class="ficha">' +
+      '<div class="ficha__top"><div><span class="kicker">Mi selección</span><h3>' + (disp.length ? disp.length + (disp.length === 1 ? " lote elegido" : " lotes elegidos") : "Aún no hay lotes") + '</h3></div><button type="button" class="ficha__close" data-sel-cerrar aria-label="Cerrar mi selección"><svg viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.6"><path d="m3 3 10 10M13 3 3 13"/></svg></button></div>' +
+      (disp.length ? '<ul class="sel-lista">' + disp.map(function (l) {
+        return '<li><button type="button" class="sel-ir" data-sel-ir="' + l.id + '"><b>' + l.id + "</b><span>" + fmtN.format(l.area) + " m²" + (l.frente ? " · " + medidasCortas(l) : "") + " · " + (l.ubic || "") + '</span></button><strong>' + MO.pesos(l.precio) + '</strong><button type="button" class="sel-quitar" data-sel-quitar="' + l.id + '" aria-label="Quitar ' + l.id + ' de mi selección">✕</button></li>';
+      }).join("") + "</ul>" : '<p class="empty">Abre un lote disponible en el plano y toca <b>“Agregar a mi selección”</b>. Puedes sumar dos o más.</p>') +
+      (fuera.length ? '<p class="aviso">' + fuera.map(function (l) { return l.id; }).join(", ") + (fuera.length === 1 ? " ya no está disponible y no se suma." : " ya no están disponibles y no se suman.") + "</p>" : "") +
+      (disp.length ? '<dl class="kv sel-totales"><dt>Área total</dt><dd>' + fmtN.format(area) + " m²</dd><dt>Valor total</dt><dd>" + MO.pesos(total) + "</dd>" +
+        (pct ? "<dt>De contado (−" + fmtPct(pct) + "%)</dt><dd>" + MO.pesos(total * (1 - pct / 100)) + "</dd>" : "") +
+        "<dt>Financiado · suma de cuotas desde</dt><dd>" + MO.pesos(cuotas) + "/mes</dd></dl>" : "") +
+      (disp.length ? '<div class="actions"><a class="btn btn--wa btn--grande" data-sel-wa>Estoy interesado · Enviar por WhatsApp</a>' +
+        '<a class="btn btn--sol" data-sel-pdf>Cotizar ' + (disp.length === 1 ? "este lote" : "mis " + disp.length + " lotes") + ' en PDF</a>' +
+        '<p class="paso">Cada lote sale en su propia hoja, con una hoja inicial que los une todos.</p>' +
+        '<button type="button" class="btn btn--line" data-sel-seguir>＋ Agregar otro lote</button>' +
+        '<button type="button" class="sel-vaciar" data-sel-vaciar>Vaciar mi selección</button></div>' : "") +
+      '<p class="aviso">' + F.aviso + "</p>" +
+    "</div>";
+    var wa = $("[data-sel-wa]", box);
+    var pdf = $("[data-sel-pdf]", box);
+    if (pdf) { pdf.href = "cotizacion.html?lotes=" + disp.map(function (l) { return encodeURIComponent(l.id); }).join(","); pdf.onclick = function () { track("seleccion_cotizar", { lotes: disp.map(function (l) { return l.id; }).join(",") }); }; }
+    if (wa) { wa.href = MO.waLink(mensajeSeleccion(disp)); wa.target = "_blank"; wa.rel = "noopener"; wa.onclick = function () { track("seleccion_whatsapp", { lotes: disp.map(function (l) { return l.id; }).join(","), total: total }); }; }
+    box.onclick = function (e) {
+      var q = e.target.closest("[data-sel-quitar]"); if (q) return alternarSeleccion(q.dataset.selQuitar);
+      var ir = e.target.closest("[data-sel-ir]"); if (ir) { box.hidden = true; return select(byId[ir.dataset.selIr], { zoom: true }); }
+      if (e.target.closest("[data-sel-seguir]")) { cerrarSeleccion(); avisoOtro(); return; }
+      if (e.target.closest("[data-sel-cerrar]")) return cerrarSeleccion();
+      if (e.target.closest("[data-sel-vaciar]")) { seleccion = []; guardarSeleccion(); pintarSeleccion(); cerrarSeleccion(); }
+    };
+    $("[data-panel-scroll]").scrollTop = 0;
+    if (disp.length && !isMobile()) focusBox(lotBox(disp), 420);
+  }
+  // vuelve al plano completo e invita a tocar otro lote
+  function avisoOtro() {
+    if (fitVb) animateTo(fitVb());
+    var h = $(".map-hint"); if (h) { h.textContent = "Toca otro lote disponible y agrégalo a tu selección"; h.classList.add("is-aviso"); }
+  }
+  function cerrarSeleccion() {
+    $("[data-sel-view]").hidden = true; $("[data-list-view]").hidden = false;
+    $("[data-panel]").classList.remove("has-lot"); document.body.classList.remove("sheet-open");
+    if (backdrop) { backdrop.remove(); backdrop = null; }
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = $("[data-sel-barra]"); if (b) b.addEventListener("click", verSeleccion);
+    setTimeout(pintarSeleccion, 0);
+  });
+
   function renderFicha() {
     var l = current, box = $("[data-ficha]"), panel = $("[data-panel]");
-    $("[data-list-view]").hidden = true; box.hidden = false;
+    $("[data-list-view]").hidden = true; $("[data-sel-view]").hidden = true; box.hidden = false;
     if (isMobile()) {
       panel.classList.add("has-lot"); document.body.classList.add("sheet-open");
       if (!backdrop) { backdrop = document.createElement("div"); backdrop.className = "sheet-backdrop"; backdrop.addEventListener("click", closeFicha); document.body.appendChild(backdrop); }
@@ -667,6 +762,11 @@
       '<div class="pills"><span class="pill ok">Disponible</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + (l.ubic ? '<span class="pill">' + l.ubic + "</span>" : "") + (l.frente ? '<span class="pill pill--med">' + medidasCortas(l) + "</span>" : "") + "</div>" +
       '<div class="price"><span>Valor</span><b>' + MO.pesos(l.precio) + "</b></div>" +
       (l.frente && !l.lados ? '<p class="med-linea">' + fmtN.format(l.area) + " m² · <b>Frente " + fmtN.format(l.frente) + " m</b> · <b>Fondo " + fmtN.format(l.fondo) + " m</b></p>" : "") +
+      // cotizar varios lotes: a la vista, justo debajo del precio
+      '<div class="sel-zona">' +
+        '<button type="button" class="btn btn--sel" data-sel-toggle></button>' +
+        '<div class="sel-mas" data-sel-mas hidden><button type="button" class="btn btn--line" data-sel-otro>＋ Agregar otro lote</button><button type="button" class="btn btn--line" data-sel-ver>Ver mi selección (<span data-sel-n-ficha></span>)</button></div>' +
+      "</div>" +
       datos(l) +
       '<div class="modos" role="tablist" data-modos>' +
         '<button type="button" role="tab" data-modo="financiado" aria-selected="true">Financiado</button>' +
@@ -807,6 +907,20 @@
       $("[data-meses]", simEl).addEventListener("change", function (e) { sim.meses = +e.target.value; calc(); track("financing_simulation", { lote: l.id, inicial: sim.pct, meses: sim.meses }); });
       calc();
     } else links();
+    var tg = $("[data-sel-toggle]", box);
+    if (tg) {
+      var pintarTg = function () {
+        var esta = enSeleccion(l.id);
+        tg.classList.toggle("is-on", esta);
+        tg.innerHTML = esta ? "✓ En tu selección · Quitar" : "＋ Agregar a mi selección <small>Cotiza dos o más lotes juntos</small>";
+        var mas = $("[data-sel-mas]", box);
+        if (mas) { mas.hidden = !esta; $("[data-sel-n-ficha]", box).textContent = seleccion.length; }
+      };
+      tg.addEventListener("click", function () { alternarSeleccion(l.id); pintarTg(); });
+      $("[data-sel-otro]", box).addEventListener("click", function () { closeFicha(); pintarSeleccion(); avisoOtro(); });
+      $("[data-sel-ver]", box).addEventListener("click", verSeleccion);
+      pintarTg();
+    }
     var share = $("[data-share]", box);
     if (share) share.addEventListener("click", function () {
       var url = location.origin + location.pathname + "?lote=" + encodeURIComponent(l.id) + "#lotes";
