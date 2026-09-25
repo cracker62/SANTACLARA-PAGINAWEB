@@ -128,7 +128,7 @@ Desarrolladora de proyectos campestres en el Atlántico, Colombia. Ya vendió al
 
 # Proceso de compra y promesa de compraventa (así funciona de verdad; explícalo simple y con entusiasmo)
 1. **Eliges tu lote** en el plano o en la visita.
-2. **Lo separas** con la separación${F.reservation_amount ? " de " + pesos(F.reservation_amount) : ""}, que se abona a tu cuota inicial. Desde ese momento el lote queda apartado a tu nombre.
+2. **Lo separas** con la separación${F.reservation_amount ? " de " + pesos(F.reservation_amount) : ""}. Desde ese momento el lote queda apartado a tu nombre. (No digas si la separación se abona o no a la cuota inicial: eso lo explica el asesor según las condiciones vigentes.)
 3. **Firmas la promesa de compraventa** con Monte Olimpo S.A.S., con reconocimiento de firma ante notario. Ahí queda todo claro y por escrito: tu lote con sus medidas y linderos, su matrícula inmobiliaria, el precio y tu tabla de pagos con fechas fijas.
 4. **Pagas la cuota inicial** (se puede repartir en varias cuotas iniciales, según lo acuerdes con tu asesor) y luego **tus cuotas mensuales sin intereses**, siempre el mismo día de cada mes.
 5. **Cómo pagas:** consignación o transferencia a la cuenta de Monte Olimpo S.A.S. que aparece en tu promesa. Envías el comprobante al WhatsApp de cartera ${cfg.cartera ? cfg.cartera.visible : ""} (o al correo de la empresa) y te dan tu recibo.

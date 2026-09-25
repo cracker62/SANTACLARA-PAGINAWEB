@@ -32,7 +32,7 @@ window.MO_CONFIG = {
     // Pago de contado: descuento sobre el valor de lista y plazo para pagar el saldo.
     // La cotización en PDF es válida por estos días desde que se genera
     vigencia_cotizacion_dias: 15,
-    contado: { descuento_pct: 2.5, plazo_dias: 30 },
+    contado: { descuento_pct: 5, plazo_dias: 30 },
     // Plazos de referencia según área del lote (m²). Se negocian con el asesor comercial.
     financing_rules: [
       { hasta_m2: 499,  min_months: 18, max_months: 24 },
