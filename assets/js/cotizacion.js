@@ -178,7 +178,7 @@
   function mensajeAsesor() {
     var n = inNombre.value.trim(), w = inWa.value.trim();
     var t = "Hola, soy " + n + " y quiero el lote " + lote.id + " de Santa Clara – Poblado Campestre (Mz. " + lote.mz + " · Lote " + lote.n + ")." + CR + CR +
-      "Mi WhatsApp: " + w + CR + "Área: " + nf.format(lote.area) + " m²" + (lote.frente && !lote.lados ? " (" + nf.format(lote.frente) + " × " + nf.format(lote.fondo) + " m)" : "") + (lote.ubic ? " · " + lote.ubic : "") + CR +
+      "Mi WhatsApp: " + w + CR + "Área: " + nf.format(lote.area) + " m²" + (lote.frente && !lote.lados ? " · Frente " + nf.format(lote.frente) + " m × Fondo " + nf.format(lote.fondo) + " m" : "") + (lote.ubic ? " · " + lote.ubic : "") + CR +
       "Valor del lote: " + MO.pesos(lote.precio) + CR;
     if (modo === "contado") {
       var c = MO.contado(lote.precio);

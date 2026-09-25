@@ -573,3 +573,9 @@
 @media (max-width:1100px){
   .panel.has-lot .ficha{padding:18px 18px 110px}
 }
+
+/* Frente y fondo del lote */
+.tip__med{display:block;margin-top:2px;font-size:11.5px;color:#F4C24A;font-weight:600}
+.pill--med{background:#1B2A45;border-color:#1B2A45;color:#fff;text-transform:none;letter-spacing:.02em}
+.med-linea{margin:-8px 0 0;font-size:13.5px;color:var(--sc-tinta-2)}
+.med-linea b{color:var(--sc-marino)}

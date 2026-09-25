@@ -428,7 +428,8 @@
     tip.hidden = false;
     tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px";
     tip.innerHTML = '<span class="st">' + ESTADO[l.estado] + "</span><b>" + nombreLote(l) + "</b>" +
-      (l.area ? fmtN.format(l.area) + " m²" : "") + (l.estado === "disponible" ? " · " + MO.pesos(l.precio) : "");
+      (l.area ? fmtN.format(l.area) + " m²" : "") + (l.estado === "disponible" ? " · " + MO.pesos(l.precio) : "") +
+      (l.frente && !l.lados ? '<span class="tip__med">Frente ' + fmtN.format(l.frente) + " m · Fondo " + fmtN.format(l.fondo) + " m</span>" : "");
   }
   function hideTip() { if (tip) tip.hidden = true; }
 
@@ -548,7 +549,7 @@
     if (!desde) ul.innerHTML = ls.length ? "" : '<li class="empty">No hay lotes disponibles con estos filtros. Prueba con otra área o ubicación.</li>';
     ls.slice(desde, st.limit).forEach(function (l) {
       var li = document.createElement("li");
-      li.innerHTML = '<button type="button" data-id="' + l.id + '"><span class="id">' + l.id + '</span><span class="a">' + fmtN.format(l.area) + " m² · " + l.ubic + (l.etapa ? " · Etapa " + l.etapa : "") + '</span><span class="p">' + MO.pesos(l.precio) + '</span><span class="c">desde ' + MO.pesos(cuotaDesde(l)) + "/mes</span></button>";
+      li.innerHTML = '<button type="button" data-id="' + l.id + '"><span class="id">' + l.id + '</span><span class="a">' + fmtN.format(l.area) + " m²" + (l.frente ? " (" + medidasCortas(l) + ")" : "") + " · " + l.ubic + (l.etapa ? " · Etapa " + l.etapa : "") + '</span><span class="p">' + MO.pesos(l.precio) + '</span><span class="c">desde ' + MO.pesos(cuotaDesde(l)) + "/mes</span></button>";
       ul.appendChild(li);
     });
     st.shown = Math.min(st.limit, ls.length); st.total = ls.length;
@@ -613,12 +614,16 @@
   }
 
   // Frente y fondo del plano del arquitecto; en lotes irregulares, la medida de cada lado
+  function medidasCortas(l) {
+    if (!l.frente) return "";
+    return l.lados ? "Irregular" : fmtN.format(l.frente) + " × " + fmtN.format(l.fondo) + " m";
+  }
   function medidasHTML(l) {
     if (!l.frente) return "";
     var m = function (v) { return fmtN.format(v) + " m"; };
     return l.lados
       ? "<dt>Medidas</dt><dd>Irregular: " + l.lados.map(function (v) { return fmtN.format(v); }).join(" · ") + " m</dd>"
-      : "<dt>Frente × fondo</dt><dd>" + m(l.frente) + " × " + m(l.fondo) + "</dd>";
+      : "<dt>Frente</dt><dd>" + m(l.frente) + "</dd><dt>Fondo</dt><dd>" + m(l.fondo) + "</dd>";
   }
   window.MO_MEDIDAS = medidasHTML;
   function fichaDisponible(l, close) {
@@ -627,8 +632,9 @@
     var pcts = F.down_payment_options.map(function (p) { return '<button type="button" class="chip" data-pct="' + p + '" aria-pressed="' + (p === sim.pct) + '">' + p + "%</button>"; }).join("");
     return '<div class="ficha">' +
       '<div class="ficha__top"><div><span class="kicker">¡Excelente elección!</span><h3>' + nombreLote(l) + "</h3></div>" + close + "</div>" +
-      '<div class="pills"><span class="pill ok">Disponible</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + (l.ubic ? '<span class="pill">' + l.ubic + "</span>" : "") + "</div>" +
+      '<div class="pills"><span class="pill ok">Disponible</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + (l.ubic ? '<span class="pill">' + l.ubic + "</span>" : "") + (l.frente ? '<span class="pill pill--med">' + medidasCortas(l) + "</span>" : "") + "</div>" +
       '<div class="price"><span>Valor</span><b>' + MO.pesos(l.precio) + "</b></div>" +
+      (l.frente && !l.lados ? '<p class="med-linea">' + fmtN.format(l.area) + " m² · <b>Frente " + fmtN.format(l.frente) + " m</b> · <b>Fondo " + fmtN.format(l.fondo) + " m</b></p>" : "") +
       datos(l) +
       '<div class="modos" role="tablist" data-modos>' +
         '<button type="button" role="tab" data-modo="financiado" aria-selected="true">Financiado</button>' +
