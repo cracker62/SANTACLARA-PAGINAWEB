@@ -121,7 +121,11 @@
 
   @media screen and (max-width:760px){
     .par{grid-template-columns:1fr}
-    .cuotas-cols{grid-template-columns:1fr}
+    /* en el celular el plan de pagos va en una sola lista, clara y sin cifras montadas */
+    .cuotas-cols{grid-template-columns:1fr !important;gap:0}
+    .cuotas-cols table + table thead{display:none}
+    .cuotas-cols td{font-size:14px;padding:8px 12px;white-space:nowrap}
+    .cuotas-cols th{font-size:10.5px;padding:7px 12px}
     .cab{flex-direction:column;align-items:flex-start;gap:14px}
     .cuerpo,.cab,.cliente{padding-left:18px;padding-right:18px}
     .aviso,.pie{margin-left:18px;margin-right:18px}
@@ -286,6 +290,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="assets/js/comun.js?v=12"></script>
 <script src="assets/js/terreno.js?v=10"></script>
-<script src="assets/js/cotizacion.js?v=20" defer=""></script>
+<script src="assets/js/cotizacion.js?v=21" defer=""></script>
 </body>
 </html>

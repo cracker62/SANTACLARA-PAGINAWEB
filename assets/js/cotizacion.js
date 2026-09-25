@@ -230,7 +230,21 @@
         sustituto.src = p.url; sustituto.style.cssText = "display:block;width:100%;height:" + p.alto + "px;object-fit:cover";
         cajaPlano.replaceChild(sustituto, svg);
       }
-      return html2canvas(hoja, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+      // Siempre con el diseño de computador (hoja de 920 px), aunque se genere desde el celular:
+      // html2canvas copia la página en un marco de 1100 px de ancho, así aplican los estilos de computador
+      return html2canvas(hoja, {
+        scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false,
+        windowWidth: 1100, windowHeight: 1500, width: 920,
+        onclone: function (doc) {
+          doc.documentElement.classList.add("para-pdf");
+          var h = doc.querySelector("[data-hoja]");
+          h.style.width = "920px"; h.style.maxWidth = "920px"; h.style.margin = "0"; h.style.boxShadow = "none";
+          var cc = doc.querySelector("[data-cuotas]");
+          if (cc) cc.style.gridTemplateColumns = "repeat(" + cc.children.length + ",minmax(0,1fr))";
+          var im = doc.querySelector("[data-plano] img");
+          if (im) { im.style.height = "auto"; im.style.aspectRatio = "16/6"; }
+        }
+      });
     }).then(function (lienzo) {
       if (sustituto && svg) cajaPlano.replaceChild(svg, sustituto);
       var pdf = new window.jspdf.jsPDF({ orientation: "p", unit: "pt", format: "a4" });
