@@ -168,9 +168,19 @@
   selPct.addEventListener("change", function () { pct = +selPct.value; pintarPago(); guardarUrl(); });
   selMeses.addEventListener("change", function () { meses = +selMeses.value; pintarPago(); guardarUrl(); });
   [inNombre, inWa].forEach(function (el) { el.addEventListener("input", function () { pintarCliente(); guardarUrl(); }); });
+  // "Descargar PDF": arma el archivo y lo guarda con su nombre (sin pasar por la ventana de imprimir)
   $("#c-pdf").addEventListener("click", function () {
+    var boton = this, texto = boton.textContent;
     if (window.dataLayer) window.dataLayer.push({ event: "cotizacion_pdf", lote: lote.id, meses: meses, inicial: pct });
-    window.print();
+    boton.disabled = true; boton.textContent = "Armando tu PDF…";
+    armarPDF().then(function (blob) {
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = nombreArchivo(); document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }).catch(function (e) {
+      if (window.console) console.error("cotización: no se pudo armar el PDF", e);
+      window.print();   // último recurso si el navegador no puede armarlo
+    }).then(function () { boton.disabled = false; boton.textContent = texto; });
   });
 
   /* ---------- enviar la cotización en PDF por WhatsApp ----------
@@ -273,8 +283,10 @@
     });
   }
 
+  // Nombre ordenado: "Cotización Santa Clara - Mz D Lote 8 - Nombre del cliente.pdf"
   function nombreArchivo() {
-    return "Cotizacion " + lote.id + " - Santa Clara" + (inNombre.value.trim() ? " - " + inNombre.value.trim() : "") + ".pdf";
+    var n = inNombre.value.trim().replace(/[\/:*?"<>|]+/g, " ").replace(/\s+/g, " ");
+    return "Cotización Santa Clara - Mz " + lote.mz + " Lote " + lote.n + (n ? " - " + n : "") + ".pdf";
   }
 
   var enviando = false;

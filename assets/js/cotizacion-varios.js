@@ -168,7 +168,8 @@
     }).then(function () { return pdf.output("blob"); });
   }
   function nombreArchivo() {
-    return "Cotizacion " + lotes.length + " lotes (" + lotes.map(function (l) { return l.id; }).join(", ") + ") - Santa Clara" + (inNombre.value.trim() ? " - " + inNombre.value.trim() : "") + ".pdf";
+    var n = inNombre.value.trim().replace(/[\/:*?"<>|]+/g, " ").replace(/\s+/g, " ");
+    return "Cotización Santa Clara - " + lotes.map(function (l) { return "Mz " + l.mz + " Lote " + l.n; }).join(", ") + (n ? " - " + n : "") + ".pdf";
   }
   function mensaje() {
     var cs = calculos(), n = inNombre.value.trim(), w = inWa.value.trim(), total = 0, area = 0, ini = 0, cuota = 0, contado = 0;
