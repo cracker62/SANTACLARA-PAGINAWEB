@@ -613,6 +613,7 @@
     document.body.classList.remove("sheet-open");
     if (backdrop) { backdrop.remove(); backdrop = null; }
     var url = new URL(location.href); url.searchParams.delete("lote"); history.replaceState(null, "", url);
+    marcarPanel();
   }
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && current) closeFicha(); });
 
@@ -694,6 +695,7 @@
       if (e.target.closest("[data-sel-vaciar]")) { seleccion = []; guardarSeleccion(); pintarSeleccion(); cerrarSeleccion(); }
     };
     $("[data-panel-scroll]").scrollTop = 0;
+    marcarPanel();
     if (disp.length && !isMobile()) focusBox(lotBox(disp), 420);
   }
   // vuelve al plano completo e invita a tocar otro lote
@@ -705,12 +707,20 @@
     $("[data-sel-view]").hidden = true; $("[data-list-view]").hidden = false;
     $("[data-panel]").classList.remove("has-lot"); document.body.classList.remove("sheet-open");
     if (backdrop) { backdrop.remove(); backdrop = null; }
+    marcarPanel();
   }
   document.addEventListener("DOMContentLoaded", function () {
     var b = $("[data-sel-barra]"); if (b) b.addEventListener("click", verSeleccion);
     setTimeout(pintarSeleccion, 0);
   });
 
+  // mientras el panel del lote está abierto y el plano se ve, el botón de Olimpo se corre para no taparlo
+  var enPlano = false;
+  function marcarPanel() { document.body.classList.toggle("panel-abierto", enPlano && (!!current || !$("[data-sel-view]").hidden)); }
+  document.addEventListener("DOMContentLoaded", function () {
+    var ex = $("[data-expl-body]");
+    if (ex && "IntersectionObserver" in window) new IntersectionObserver(function (e) { enPlano = e[0].isIntersecting; marcarPanel(); }, { threshold: .25 }).observe(ex);
+  });
   function renderFicha() {
     var l = current, box = $("[data-ficha]"), panel = $("[data-panel]");
     $("[data-list-view]").hidden = true; $("[data-sel-view]").hidden = true; box.hidden = false;
@@ -726,6 +736,7 @@
     box.innerHTML = html;
     $("[data-panel-scroll]").scrollTop = 0;
     wireFicha(box, l);
+    marcarPanel();
   }
 
   function datos(l) {
@@ -758,15 +769,10 @@
     for (var m = r.min_months; m <= r.max_months; m++) opts += '<option value="' + m + '"' + (m === sim.meses ? " selected" : "") + ">" + m + " meses</option>";
     var pcts = F.down_payment_options.map(function (p) { return '<button type="button" class="chip" data-pct="' + p + '" aria-pressed="' + (p === sim.pct) + '">' + p + "%</button>"; }).join("");
     return '<div class="ficha">' +
-      '<div class="ficha__top"><div><span class="kicker">¡Excelente elección!</span><h3>' + nombreLote(l) + "</h3></div>" + close + "</div>" +
+      '<div class="ficha__top"><div><span class="kicker">¡Excelente elección!</span><h3>' + nombreLote(l) + '</h3><p class="ficha__sub">Elegiste el lote ' + l.n + " de la manzana " + l.mz + "</p></div>" + close + "</div>" +
       '<div class="pills"><span class="pill ok">Disponible</span>' + (l.etapa ? '<span class="pill">Etapa ' + l.etapa + "</span>" : "") + (l.ubic ? '<span class="pill">' + l.ubic + "</span>" : "") + (l.frente ? '<span class="pill pill--med">' + medidasCortas(l) + "</span>" : "") + "</div>" +
       '<div class="price"><span>Valor</span><b>' + MO.pesos(l.precio) + "</b></div>" +
       (l.frente && !l.lados ? '<p class="med-linea">' + fmtN.format(l.area) + " m² · <b>Frente " + fmtN.format(l.frente) + " m</b> · <b>Fondo " + fmtN.format(l.fondo) + " m</b></p>" : "") +
-      // cotizar varios lotes: a la vista, justo debajo del precio
-      '<div class="sel-zona">' +
-        '<button type="button" class="btn btn--sel" data-sel-toggle></button>' +
-        '<div class="sel-mas" data-sel-mas hidden><button type="button" class="btn btn--line" data-sel-otro>＋ Agregar otro lote</button><button type="button" class="btn btn--line" data-sel-ver>Ver mi selección (<span data-sel-n-ficha></span>)</button></div>' +
-      "</div>" +
       datos(l) +
       '<div class="modos" role="tablist" data-modos>' +
         '<button type="button" role="tab" data-modo="financiado" aria-selected="true">Financiado</button>' +
@@ -799,6 +805,8 @@
         '<p class="paso">La personalizada lleva tu nombre y se la mandas al asesor en PDF.</p>' +
         '<div class="row2"><a class="btn btn--line" data-act="visita">Agendar visita</a><button type="button" class="btn btn--line" data-share>Compartir</button></div>' +
       "</div>" +
+      // cotizar varios lotes: una opción pequeña al final, sin estorbar lo demás
+      '<div class="sel-pie"><button type="button" class="sel-link" data-sel-toggle></button><button type="button" class="sel-link" data-sel-ver hidden>Ver mi selección (<span data-sel-n-ficha></span>)</button></div>' +
       '<p class="aviso">' + F.aviso + " El plazo final se acuerda con tu asesor.</p>" +
     "</div>";
   }
@@ -912,12 +920,16 @@
       var pintarTg = function () {
         var esta = enSeleccion(l.id);
         tg.classList.toggle("is-on", esta);
-        tg.innerHTML = esta ? "✓ En tu selección · Quitar" : "＋ Agregar a mi selección <small>Cotiza dos o más lotes juntos</small>";
-        var mas = $("[data-sel-mas]", box);
-        if (mas) { mas.hidden = !esta; $("[data-sel-n-ficha]", box).textContent = seleccion.length; }
+        tg.textContent = esta ? "✓ Agregado · quitar" : "＋ Cotizar este lote junto con otro";
+        var ver = $("[data-sel-ver]", box);
+        ver.hidden = !seleccion.length; $("[data-sel-n-ficha]", box).textContent = seleccion.length;
       };
-      tg.addEventListener("click", function () { alternarSeleccion(l.id); pintarTg(); });
-      $("[data-sel-otro]", box).addEventListener("click", function () { closeFicha(); pintarSeleccion(); avisoOtro(); });
+      tg.addEventListener("click", function () {
+        var agregando = !enSeleccion(l.id);
+        alternarSeleccion(l.id); pintarTg();
+        // al agregar el primero, vuelve al plano para que elija el otro lote
+        if (agregando && seleccion.length === 1) { closeFicha(); avisoOtro(); }
+      });
       $("[data-sel-ver]", box).addEventListener("click", verSeleccion);
       pintarTg();
     }

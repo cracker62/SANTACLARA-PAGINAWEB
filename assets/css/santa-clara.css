@@ -618,3 +618,15 @@
 .sel-mas .btn{white-space:nowrap;font-size:13px;padding:6px 8px}
 .sel-barra{left:auto;right:14px;transform:none;max-width:min(460px,calc(100% - 28px))}
 @media (max-width:700px){.sel-barra{right:12px;left:12px;max-width:none;bottom:58px}}
+
+/* Ficha del lote: encabezado claro y la opción de varios lotes pequeña, al final */
+.ficha__sub{margin:4px 0 0;font-size:14px;color:var(--sc-tinta-2)}
+.sel-pie{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;border-top:1px dashed var(--sc-linea);padding-top:10px}
+.sel-link{all:unset;cursor:pointer;font-size:13px;font-weight:700;color:var(--sc-lago);padding:4px 2px}
+.sel-link:hover{text-decoration:underline}
+.sel-link:focus-visible{outline:2px solid var(--sc-lago);outline-offset:2px}
+/* En computador, el botón de Olimpo no tapa el panel del lote: se corre a la izquierda del panel */
+@media (min-width:1101px){
+  body.panel-abierto .olimpo-fab{right:calc(clamp(380px,30vw,470px) + 18px)}
+}
+.sel-link[hidden]{display:none}
